@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Antitheft</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="lock_status">Lock Status</string>
+    <string name="camera">Camera</string>
+    <string name="location">Location</string>
+    <string name="bell">Bell</string>
+    <string name="settings">Settings</string>
+    <string name="user">User</string>
+
+
+</resources>

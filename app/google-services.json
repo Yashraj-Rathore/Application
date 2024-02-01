@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "215822286306",
+    "firebase_url": "https://app-proj4000-default-rtdb.firebaseio.com",
+    "project_id": "app-proj4000",
+    "storage_bucket": "app-proj4000.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215822286306:android:c64dc6c040e97f0a03cdbb",
+        "android_client_info": {
+          "package_name": "com.example.antitheft"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCm5CrzykfDvxg7asuxA0NLHCutL6XwDx0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

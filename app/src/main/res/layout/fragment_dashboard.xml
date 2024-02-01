@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000">
+
+    <!-- Header with welcome text -->
+    <TextView
+        android:id="@+id/welcomeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome"
+        android:layout_marginTop="16dp"
+        android:layout_centerHorizontal="true"
+        android:textColor="#FFF"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/textDashboard"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        />
+
+
+    <!-- Lock status layout container -->
+    <RelativeLayout
+        android:id="@+id/lockStatusLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/welcomeText"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="32dp">
+
+        <!-- Lock status image -->
+        <ImageView
+            android:id="@+id/lockImage"
+            android:layout_width="93dp"
+            android:layout_height="93dp"
+            android:layout_centerHorizontal="true"
+            android:contentDescription="@string/lock_status"
+            android:src="@drawable/ic_lock" />
+
+        <!-- Lock status text -->
+        <TextView
+            android:id="@+id/lockStatusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lockImage"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            android:text="Vehicle secured"
+            android:textColor="#00FF00"
+            android:textSize="18sp" />
+    </RelativeLayout>
+
+    <!-- Last known location button -->
+    <Button
+        android:id="@+id/locationButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/lockStatusLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="24dp"
+        android:text="Last known location"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:background="@drawable/location_button_background"
+        android:textColor="#FFF" />
+
+    <!-- Camera and Location Icons -->
+    <LinearLayout
+        android:id="@+id/cameraLocationLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="200dp"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:layout_above="@+id/bottomButtonBar">
+
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/bottomButtonBar"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="48dp">
+
+        <Switch
+            android:id="@+id/motion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:text="Motion"
+            android:textColor="#FFF"
+            android:textSize="24sp"
+            android:layout_marginEnd="80dp" />
+
+        <Switch
+            android:id="@+id/lockSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="60dp"
+            android:minHeight="48dp"
+            android:text="Alarm"
+            android:textColor="#FFF"
+            android:textSize="24sp" />
+
+    </LinearLayout>
+
+
+
+
+    <!-- Bottom Button Bar with Bell, Settings, and User Icons -->
+<LinearLayout
+android:id="@+id/bottomButtonBar"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:layout_marginBottom="16dp"
+android:orientation="horizontal"
+android:gravity="center"
+android:layout_alignParentBottom="true">
+
+
+    <ImageView
+        android:id="@+id/bellIcon"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:contentDescription="@string/bell"
+        android:src="@drawable/ic_bell" />
+
+    <ImageView
+        android:id="@+id/settingsIcon"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:contentDescription="@string/settings"
+        android:src="@drawable/ic_settings" />
+
+    <ImageView
+    android:id="@+id/userIcon"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:src="@drawable/ic_user"
+android:contentDescription="@string/user" />
+</LinearLayout>
+
+</RelativeLayout>
