@@ -12,6 +12,9 @@ import android.util.Log;
 
 
 import android.Manifest;
+import android.widget.CompoundButton;
+import android.widget.Switch;
+
 import com.example.antitheft.R;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -58,34 +61,105 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
 
-        // Check if we have read permission
-        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+//        // Check if we have read permission
+//        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+//
+//        if (permission != PackageManager.PERMISSION_GRANTED) {
+//            // We don't have permission so prompt the user
+//            ActivityCompat.requestPermissions(
+//                    this,
+//                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+//                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE
+//            );
+//        }
 
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE
-            );
-        }
+//        Switch alarmSwitch = findViewById(R.id.lockSwitch); // Ensure this ID exists
+//        if (alarmSwitch != null) {
+//            alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//                @Override
+//                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                    // Handle switch change
+//                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+//                    DatabaseReference myRef = database.getReference("alarm");
+//                    if(isChecked) {
+//                        myRef.setValue("ON");
+//                    } else {
+//                        myRef.setValue("OFF");
+//                    }
+//                }
+//            });
+//        } else {
+//            // Log an error or throw an exception that the switch is not found
+//            Log.e("MainActivity", "Switch not found");
+//        }
+//
+//
+//    }
+//
+//    private void updateDatabase(String status) {
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        DatabaseReference myRef = database.getReference("alarm");
+//        myRef.setValue(status);
+//    }
+//
+//    private boolean checkAndRequestPermissions() {
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            if (!Environment.isExternalStorageManager()) {
+//                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+//                intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
+//                startActivityForResult(intent, PERMISSIONS_REQUEST_MANAGE_STORAGE);
+//                return false;
+//            }
+//        } else {
+//            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
+//
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        if (requestCode == PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE) {
+//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                updateDatabase("ON");
+//            } else {
+//                Log.d("Permissions", "Read external storage permission was denied");
+//            }
+//        }
+//    }
+//
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        if (requestCode == PERMISSIONS_REQUEST_MANAGE_STORAGE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//            if (Environment.isExternalStorageManager()) {
+//                updateDatabase("ON");
+//            } else {
+//                Log.d("Permissions", "Manage external storage permission was denied");
+//            }
+//        }
+//    }
+//}
 
-
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Permission is not granted
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-        } else {
-            // Permission has already been granted
-            //uploadImage();
-        }
-
-        //checkAndRequestPermissions();
-
+//        if (ContextCompat.checkSelfPermission(this,
+//                Manifest.permission.READ_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED) {
+//
+//            // Permission is not granted
+//            ActivityCompat.requestPermissions(this,
+//                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+//                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+//        } else {
+//            // Permission has already been granted
+//            //uploadImage();
+//        }
+//
+//        //checkAndRequestPermissions();
+//
+//    }
 
 
 //    private void checkAndRequestPermissions() {
@@ -125,8 +199,8 @@ public class MainActivity extends AppCompatActivity {
 //                    Log.d("Permissions", "Read external storage permission was denied");
 //                }
 //                break;
-//        }
-//    }
+        }
+    }
 //
 //
 //
@@ -180,60 +254,60 @@ public class MainActivity extends AppCompatActivity {
 //}
 
 
-    //Firebase Realtime Database code
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference("alarm");
-    DatabaseReference myRef2 = database.getReference("motion");
-    DatabaseReference myRef3 = database.getReference("user_recognition");
-
-    // Write a message to the database
-        myRef.setValue("ON");
-        myRef2.setValue("OFF");
-        myRef3.setValue("OFF");
-
-    // Read from the database
-        myRef.addValueEventListener(new ValueEventListener() {
-        @Override
-        public void onDataChange (DataSnapshot dataSnapshot){
-            // This method is called once with the initial value and again
-            // whenever data at this location is updated.
-            String value = dataSnapshot.getValue(String.class);
-            Log.d("Database", "Value is: " + value);
-        }
-
-        @Override
-        public void onCancelled (DatabaseError error){
-            // Failed to read value
-            Log.w("Database", "Failed to read value.", error.toException());}
-    });
-
-        myRef2.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange (DataSnapshot dataSnapshot){
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                String value = dataSnapshot.getValue(String.class);
-                Log.d("Database", "Value is: " + value);}
-
-            @Override
-            public void onCancelled (DatabaseError error){
-                // Failed to read value
-                Log.w("Database", "Failed to read value.", error.toException());}
-        });
-        myRef3.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange (DataSnapshot dataSnapshot){
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                String value = dataSnapshot.getValue(String.class);
-                Log.d("Database", "Value is: " + value);}
-
-            @Override
-            public void onCancelled (DatabaseError error){
-                // Failed to read value
-                Log.w("Database", "Failed to read value.", error.toException());}
-        });
-
-
-    }
-}
+//    //Firebase Realtime Database code
+//    FirebaseDatabase database = FirebaseDatabase.getInstance();
+//    DatabaseReference myRef = database.getReference("alarm");
+//    DatabaseReference myRef2 = database.getReference("motion");
+//    DatabaseReference myRef3 = database.getReference("user_recognition");
+//
+//    // Write a message to the database
+//        myRef.setValue("ON");
+//        myRef2.setValue("OFF");
+//        myRef3.setValue("OFF");
+//
+//    // Read from the database
+//        myRef.addValueEventListener(new ValueEventListener() {
+//        @Override
+//        public void onDataChange (DataSnapshot dataSnapshot){
+//            // This method is called once with the initial value and again
+//            // whenever data at this location is updated.
+//            String value = dataSnapshot.getValue(String.class);
+//            Log.d("Database", "Value is: " + value);
+//        }
+//
+//        @Override
+//        public void onCancelled (DatabaseError error){
+//            // Failed to read value
+//            Log.w("Database", "Failed to read value.", error.toException());}
+//    });
+//
+//        myRef2.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange (DataSnapshot dataSnapshot){
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+//                String value = dataSnapshot.getValue(String.class);
+//                Log.d("Database", "Value is: " + value);}
+//
+//            @Override
+//            public void onCancelled (DatabaseError error){
+//                // Failed to read value
+//                Log.w("Database", "Failed to read value.", error.toException());}
+//        });
+//        myRef3.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange (DataSnapshot dataSnapshot){
+//                // This method is called once with the initial value and again
+//                // whenever data at this location is updated.
+//                String value = dataSnapshot.getValue(String.class);
+//                Log.d("Database", "Value is: " + value);}
+//
+//            @Override
+//            public void onCancelled (DatabaseError error){
+//                // Failed to read value
+//                Log.w("Database", "Failed to read value.", error.toException());}
+//        });
+//
+//
+//    }
+//}
