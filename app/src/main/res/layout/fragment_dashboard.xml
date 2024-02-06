@@ -107,7 +107,9 @@
             android:minHeight="48dp"
             android:text="Alarm"
             android:textColor="#FFF"
-            android:textSize="24sp" />
+            android:textSize="24sp"
+            android:checked="true"/>
+
 
     </LinearLayout>
 
