@@ -68,17 +68,28 @@
         android:textColor="#FFF" />
 
     <!-- Camera and Location Icons -->
-    <LinearLayout
-        android:id="@+id/cameraLocationLayout"
-        android:layout_width="match_parent"
+
+    <Button
+        android:id="@+id/btnDisplayImages"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="200dp"
-    android:orientation="horizontal"
-    android:gravity="center"
-    android:layout_above="@+id/bottomButtonBar">
+        android:layout_centerInParent="true"
+        android:layout_marginTop="170dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:text="Display Images"
+        android:textColor="#FFF" />
 
-
-    </LinearLayout>
+    <GridView
+        android:id="@+id/gridView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/btnDisplayImages"
+        android:numColumns="auto_fit"
+        android:horizontalSpacing="10dp"
+        android:verticalSpacing="10dp"
+        android:padding="10dp"
+        android:stretchMode="columnWidth" />
 
 
     <LinearLayout

@@ -1,9 +1,15 @@
 package com.example.myapplication.ui.dashboard;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.GridView;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -14,8 +20,17 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.antitheft.R;
 import com.example.antitheft.databinding.FragmentDashboardBinding;
+import com.example.myapplication.ui.gallery.ImageAdapter;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.util.ArrayList;
 
 public class DashboardFragment extends Fragment {
 
@@ -24,6 +39,8 @@ public class DashboardFragment extends Fragment {
     private static final int PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
     private static final int PERMISSIONS_REQUEST_MANAGE_STORAGE = 2;
     private Switch alarmSwitch;
+    private ArrayList<Uri> imageUrls = new  ArrayList<>();
+    private ImageAdapter imageAdapter;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -43,9 +60,34 @@ public class DashboardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
+
         // Initialize your Switch here and set its listener
         alarmSwitch = view.findViewById(R.id.lockSwitch);
         if (alarmSwitch != null) {
+            // Read the current state from the database and update the switch state
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference myRef = database.getReference("alarm");
+            myRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        String status = dataSnapshot.getValue(String.class);
+                        boolean isOn = "ON".equals(status);
+                        alarmSwitch.setChecked(isOn); // This will update the switch state without triggering the listener
+
+                        // Remove this listener after retrieving the initial state to avoid unnecessary database reads
+                        myRef.removeEventListener(this);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Log.w("DashboardFragment", "Failed to read value.", databaseError.toException());
+                }
+            });
+
+            // Set the listener for the switch
             alarmSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 // Handle switch change
                 updateDatabase(isChecked ? "ON" : "OFF");
@@ -53,12 +95,46 @@ public class DashboardFragment extends Fragment {
         }
     }
 
+
+
+    private void retrieveAndDisplayImages(GridView gridView) {
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+        StorageReference listRef = storage.getReference().child("images/"); // 'images/' is the folder name in Firebase Storage
+
+        listRef.listAll()
+                .addOnSuccessListener(listResult -> {
+                    for (StorageReference item : listResult.getItems()) {
+                        // Only consider JPEG images
+                        if(item.getName().endsWith(".jpg")) {
+                            item.getDownloadUrl().addOnSuccessListener(uri -> {
+                                // Add the URI to your list and notify the adapter
+                                imageUrls.add(uri);
+                                BaseAdapter adapter = (BaseAdapter) gridView.getAdapter();
+                                if (adapter != null) {
+                                    adapter.notifyDataSetChanged();
+                                }
+                            });
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Handle any errors
+                    }
+                });
+
+
+
+
+    }
+
+
     private void updateDatabase(String status) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("alarm");
         myRef.setValue(status);
     }
-
 
 
     @Override
