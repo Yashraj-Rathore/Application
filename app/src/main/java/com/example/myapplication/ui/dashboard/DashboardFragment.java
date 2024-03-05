@@ -17,6 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.example.antitheft.R;
 import com.example.antitheft.databinding.FragmentDashboardBinding;
@@ -61,6 +63,17 @@ public class DashboardFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
 
+        Button displayImagesButton = view.findViewById(R.id.btnDisplayImages);
+
+        displayImagesButton.setOnClickListener(v -> {
+            NavController navController = Navigation.findNavController(view);
+            navController.navigate(R.id.action_dashboardFragment_to_galleryFragment);
+        });
+
+
+
+
+
 
         // Initialize your Switch here and set its listener
         alarmSwitch = view.findViewById(R.id.lockSwitch);
@@ -99,7 +112,7 @@ public class DashboardFragment extends Fragment {
 
     private void retrieveAndDisplayImages(GridView gridView) {
         FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference listRef = storage.getReference().child("images/"); // 'images/' is the folder name in Firebase Storage
+        StorageReference listRef = storage.getReference().child("images2/"); // 'images/' is the folder name in Firebase Storage
 
         listRef.listAll()
                 .addOnSuccessListener(listResult -> {

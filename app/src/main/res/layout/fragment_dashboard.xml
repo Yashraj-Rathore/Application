@@ -138,29 +138,7 @@ android:gravity="center"
 android:layout_alignParentBottom="true">
 
 
-    <ImageView
-        android:id="@+id/bellIcon"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:contentDescription="@string/bell"
-        android:src="@drawable/ic_bell" />
 
-    <ImageView
-        android:id="@+id/settingsIcon"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:contentDescription="@string/settings"
-        android:src="@drawable/ic_settings" />
-
-    <ImageView
-    android:id="@+id/userIcon"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:src="@drawable/ic_user"
-android:contentDescription="@string/user" />
 </LinearLayout>
 
 </RelativeLayout>

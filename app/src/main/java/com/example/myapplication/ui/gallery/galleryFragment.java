@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class galleryFragment extends Fragment {
 
 
-    private GridView gridView;
+    private GridView gridView; 
     private ImageAdapter adapter;
 
     private ActivityGalleryBinding binding;
@@ -67,7 +67,7 @@ public class galleryFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Reference to your 'images/' directory in Firebase Storage
-        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("images/");
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("images2/");
         storageRef.listAll()
                 .addOnSuccessListener(listResult -> {
                     // Initialize a new list to hold the download URLs
