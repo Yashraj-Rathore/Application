@@ -15,13 +15,21 @@
         app:cardCornerRadius="20dp">
 
         <ImageView
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:scaleType="centerCrop"
-            android:id="@+id/gridImage"/>
+            android:id="@+id/gridImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
 
     </androidx.cardview.widget.CardView>
 
-
+    <!-- Add this TextView below your CardView to display text under the image -->
+    <TextView
+        android:id="@+id/timeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:gravity="center_horizontal"
+        android:layout_marginTop="8dp"
+        android:text="Your Text Here" /> <!-- Replace with your own string resource or text -->
 
 </LinearLayout>

@@ -4,16 +4,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <TextView
+        android:id="@+id/textViewProcessedResults"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="Processed Results will appear here"
+        android:padding="16dp"
+        android:textSize="20sp"/>
+
+    <!-- Button for Authenticate action -->
+    <Button
+        android:id="@+id/buttonAuthenticate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textViewProcessedResults"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Authenticate" />
+
+    <!-- The GridView is positioned below the buttonAuthenticate by using android:layout_below -->
     <GridView
         android:id="@+id/gridView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/buttonAuthenticate"
         android:numColumns="2" />
 
+    <!-- TextView for gallery, ensure to position or update this view as necessary -->
     <TextView
         android:id="@+id/textGallery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        />
+        android:layout_below="@id/gridView" />
 
 </RelativeLayout>

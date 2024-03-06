@@ -1,45 +1,41 @@
 package com.example.myapplication.ui.gallery;
 
 import android.content.Context;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
+
 import com.bumptech.glide.Glide;
 import com.example.antitheft.R;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.ArrayList;
 
 
 public class ImageAdapter extends BaseAdapter {
     private Context context;
-    private ArrayList<String> imagePaths;
+    private ArrayList<ImageItem> imageItems;
 
-    // Constructor to ensure imageUrls is never null
-    public ImageAdapter(Context context, ArrayList<String> imagePaths) {
+    public ImageAdapter(Context context, ArrayList<ImageItem> imageItems) {
         this.context = context;
-        this.imagePaths = imagePaths != null ? imagePaths : new ArrayList<>();
+        this.imageItems = new ArrayList<>();
     }
 
-    // Method to update image URLs and refresh the grid view
-    public void setImageUrls(ArrayList<String> newImagePaths) {
-        this.imagePaths = newImagePaths!= null ? newImagePaths : new ArrayList<>();
-        notifyDataSetChanged(); // Notify the adapter to refresh the views
+    public void setImageItems(ArrayList<ImageItem> newImageItems) {
+        this.imageItems = newImageItems;
+        notifyDataSetChanged();
     }
 
     @Override
     public int getCount() {
-        return imagePaths.size();
+        return imageItems.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return imagePaths.get(position);
+        return imageItems.get(position);
     }
 
     @Override
@@ -50,27 +46,28 @@ public class ImageAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         ViewHolder holder;
-
         if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.item_image, parent, false); // Ensure this layout ID matches your grid item XML file name
+            convertView = LayoutInflater.from(context).inflate(R.layout.item_image, parent, false);
             holder = new ViewHolder();
             holder.imageView = convertView.findViewById(R.id.gridImage);
+            holder.timeTextView = convertView.findViewById(R.id.timeTextView); // Assuming you've added this to your item_image.xml
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
 
-        String imageUrl = imagePaths.get(position);
+        ImageItem imageItem = imageItems.get(position);
         Glide.with(context)
-                .load(imageUrl) // Use the download URL directly
+                .load(imageItem.getImageUrl())
                 .into(holder.imageView);
+        holder.timeTextView.setText(imageItem.getUploadTime());
 
         return convertView;
     }
 
-    // ViewHolder pattern for performance optimization
     static class ViewHolder {
         ImageView imageView;
+        TextView timeTextView; // TextView for the upload time
     }
 }
 

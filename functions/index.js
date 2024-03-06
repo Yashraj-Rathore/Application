@@ -22,8 +22,7 @@ admin.initializeApp();
 exports.sendNotificationOnImageUpload = functions.storage.object().onFinalize(
     async (object) => {
       // Check if the file is uploaded to the "images" folder and is a JPEG
-      if (object.name.startsWith("images2/") &&
-       object.contentType === "image/jpeg") {
+      if (object.contentType === "image/jpeg") {
         // Prepare the message for FCM
         const message = {
           notification: {

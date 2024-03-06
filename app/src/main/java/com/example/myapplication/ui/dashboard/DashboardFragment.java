@@ -110,37 +110,38 @@ public class DashboardFragment extends Fragment {
 
 
 
-    private void retrieveAndDisplayImages(GridView gridView) {
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference listRef = storage.getReference().child("images2/"); // 'images/' is the folder name in Firebase Storage
-
-        listRef.listAll()
-                .addOnSuccessListener(listResult -> {
-                    for (StorageReference item : listResult.getItems()) {
-                        // Only consider JPEG images
-                        if(item.getName().endsWith(".jpg")) {
-                            item.getDownloadUrl().addOnSuccessListener(uri -> {
-                                // Add the URI to your list and notify the adapter
-                                imageUrls.add(uri);
-                                BaseAdapter adapter = (BaseAdapter) gridView.getAdapter();
-                                if (adapter != null) {
-                                    adapter.notifyDataSetChanged();
-                                }
-                            });
-                        }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Handle any errors
-                    }
-                });
-
-
-
-
-    }
+//    private void retrieveAndDisplayImages(GridView gridView) {
+//        String bucketUrl = "gs://app-proj4000.appspot.com";
+//        FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
+//        StorageReference listRef = storage.getReference(); // Now points to your non-default bucket
+//
+//        listRef.listAll()
+//                .addOnSuccessListener(listResult -> {
+//                    for (StorageReference item : listResult.getItems()) {
+//                        // Only consider JPEG images
+//                        if(item.getName().endsWith(".jpg")) {
+//                            item.getDownloadUrl().addOnSuccessListener(uri -> {
+//                                // Add the URI to your list and notify the adapter
+//                                imageUrls.add(uri);
+//                                BaseAdapter adapter = (BaseAdapter) gridView.getAdapter();
+//                                if (adapter != null) {
+//                                    adapter.notifyDataSetChanged();
+//                                }
+//                            });
+//                        }
+//                    }
+//                })
+//                .addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception e) {
+//
+//                    }
+//                });
+//
+//
+//
+//
+//    }
 
 
     private void updateDatabase(String status) {

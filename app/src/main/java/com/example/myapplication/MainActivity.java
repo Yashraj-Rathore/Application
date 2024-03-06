@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
             String navigateTo = intent.getStringExtra("navigateTo");
             if ("gallery".equals(navigateTo)) {
                 // Use the global action to navigate to the GalleryFragment
-                navController.navigate(R.id.navigation_gallery);
+                navController.navigate(R.id.action_dashboardFragment_to_galleryFragment);
             }
         });
     }
