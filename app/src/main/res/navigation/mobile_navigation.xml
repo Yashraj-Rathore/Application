@@ -17,6 +17,17 @@
         android:label="@string/title_dashboard"
         tools:layout="@layout/fragment_dashboard" />
 
+
+    <action
+        android:id="@+id/action_dashboardFragment_to_galleryFragment"
+        app:destination="@id/navigation_gallery"
+        app:popUpTo="@id/navigation_home"
+        app:popUpToInclusive="true" />
+
+    <action android:id="@+id/action_global_navigation_gallery"
+        app:destination="@id/navigation_gallery"
+        app:popUpToInclusive="true"/>
+
     <fragment
         android:id="@+id/navigation_notifications"
         android:name="com.example.myapplication.ui.notifications.NotificationsFragment"

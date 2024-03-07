@@ -17,6 +17,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.example.antitheft.R;
 import com.example.antitheft.databinding.FragmentDashboardBinding;
@@ -61,6 +63,17 @@ public class DashboardFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
 
+        Button displayImagesButton = view.findViewById(R.id.btnDisplayImages);
+
+        displayImagesButton.setOnClickListener(v -> {
+            NavController navController = Navigation.findNavController(view);
+            navController.navigate(R.id.action_dashboardFragment_to_galleryFragment);
+        });
+
+
+
+
+
 
         // Initialize your Switch here and set its listener
         alarmSwitch = view.findViewById(R.id.lockSwitch);
@@ -97,37 +110,38 @@ public class DashboardFragment extends Fragment {
 
 
 
-    private void retrieveAndDisplayImages(GridView gridView) {
-        FirebaseStorage storage = FirebaseStorage.getInstance();
-        StorageReference listRef = storage.getReference().child("images/"); // 'images/' is the folder name in Firebase Storage
-
-        listRef.listAll()
-                .addOnSuccessListener(listResult -> {
-                    for (StorageReference item : listResult.getItems()) {
-                        // Only consider JPEG images
-                        if(item.getName().endsWith(".jpg")) {
-                            item.getDownloadUrl().addOnSuccessListener(uri -> {
-                                // Add the URI to your list and notify the adapter
-                                imageUrls.add(uri);
-                                BaseAdapter adapter = (BaseAdapter) gridView.getAdapter();
-                                if (adapter != null) {
-                                    adapter.notifyDataSetChanged();
-                                }
-                            });
-                        }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Handle any errors
-                    }
-                });
-
-
-
-
-    }
+//    private void retrieveAndDisplayImages(GridView gridView) {
+//        String bucketUrl = "gs://app-proj4000.appspot.com";
+//        FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
+//        StorageReference listRef = storage.getReference(); // Now points to your non-default bucket
+//
+//        listRef.listAll()
+//                .addOnSuccessListener(listResult -> {
+//                    for (StorageReference item : listResult.getItems()) {
+//                        // Only consider JPEG images
+//                        if(item.getName().endsWith(".jpg")) {
+//                            item.getDownloadUrl().addOnSuccessListener(uri -> {
+//                                // Add the URI to your list and notify the adapter
+//                                imageUrls.add(uri);
+//                                BaseAdapter adapter = (BaseAdapter) gridView.getAdapter();
+//                                if (adapter != null) {
+//                                    adapter.notifyDataSetChanged();
+//                                }
+//                            });
+//                        }
+//                    }
+//                })
+//                .addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception e) {
+//
+//                    }
+//                });
+//
+//
+//
+//
+//    }
 
 
     private void updateDatabase(String status) {
