@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
 public class galleryFragment extends Fragment {
 
 
-    private GridView gridView; 
+    private GridView gridView;
     private ImageAdapter adapter;
 
     private ActivityGalleryBinding binding;
@@ -148,6 +148,11 @@ public class galleryFragment extends Fragment {
         String bucketUrl = "gs://app-proj4000.appspot.com";
         FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
 
+
+
+
+
+
 // Initialize your TextView
         TextView textViewProcessedResults = view.findViewById(R.id.textViewProcessedResults);
 
@@ -196,6 +201,53 @@ public class galleryFragment extends Fragment {
                     exception.printStackTrace();
                 });
 
+        StorageReference textFileRef2 = storage.getReference("face_recognition_status.txt");
+        TextView textViewProcessedResults2 = view.findViewById(R.id.textViewProcessedResults2);
+        DatabaseReference databaseRef3 = FirebaseDatabase.getInstance().getReference("ML_End");
+
+
+
+        try {
+            File localFile2 = File.createTempFile("faceRecognitionStatus", "txt", getContext().getCacheDir());
+            textFileRef2.getFile(localFile2)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        // File downloaded successfully, now read the content
+                        try (BufferedReader br = new BufferedReader(new FileReader(localFile2))) {
+                            String status = br.readLine(); // Assume file has one line that is either "True" or "False"
+
+                            // Update TextView and Authorization in Database on the main thread
+                            getActivity().runOnUiThread(() -> {
+                                if ("True".equals(status)) {
+                                    textViewProcessedResults2.setText("Verified!");
+                                    updateDatabaseAuthorization(true);
+                                    databaseRef3.setValue("true");
+
+                                } else if ("False".equals(status))  {
+                                    textViewProcessedResults2.setText("Not Verified!");
+                                    updateDatabaseAuthorization(false);
+                                    databaseRef3.setValue("True");
+                                }
+                            });
+
+                        } catch (IOException e) {
+                            // Handle error reading file
+                            e.printStackTrace();
+                            getActivity().runOnUiThread(() -> textViewProcessedResults2.setText("Error reading status."));
+                        }
+                    })
+                    .addOnFailureListener(exception -> {
+                        // Handle error in file download
+                        textViewProcessedResults2.setText("Failed to download results.");
+                        exception.printStackTrace();
+                    });
+        } catch (IOException e) {
+            // Handle IOException by showing a message to the user
+            textViewProcessedResults.setText("Unable to create local file.");
+            e.printStackTrace();
+        }
+
+
+
 
         // Reference to your 'images/' directory in Firebase Storage
 
@@ -241,6 +293,13 @@ public class galleryFragment extends Fragment {
 //
 
     }
+
+    private void updateDatabaseAuthorization(boolean isAuthorized) {
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("Authorization");
+        databaseRef.setValue(isAuthorized);
+    }
+
+
 
     @Override
     public void onDestroyView() {

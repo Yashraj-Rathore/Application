@@ -13,22 +13,23 @@
         android:padding="16dp"
         android:textSize="20sp"/>
 
-    <!-- Button for Authenticate action -->
-    <Button
-        android:id="@+id/buttonAuthenticate"
-        android:layout_width="wrap_content"
+    <TextView
+        android:id="@+id/textViewProcessedResults2"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:layout_below="@id/textViewProcessedResults"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"
-        android:text="Authenticate" />
+        android:text="Verfied Results will appear here"
+        android:padding="16dp"
+        android:textSize="20sp"/>
+
 
     <!-- The GridView is positioned below the buttonAuthenticate by using android:layout_below -->
     <GridView
         android:id="@+id/gridView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/buttonAuthenticate"
+        android:layout_below="@id/textViewProcessedResults2"
         android:numColumns="2" />
 
     <!-- TextView for gallery, ensure to position or update this view as necessary -->
