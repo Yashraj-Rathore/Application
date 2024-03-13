@@ -80,11 +80,24 @@
         android:text="Display Images"
         android:textColor="#FFF" />
 
+
+    <Button
+        android:id="@+id/btnForceAuthenticate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnDisplayImages"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Force Authentication"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:textColor="#FFF" />
+
     <GridView
         android:id="@+id/gridView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@id/btnDisplayImages"
+        android:layout_below="@id/btnForceAuthenticate"
         android:numColumns="auto_fit"
         android:horizontalSpacing="10dp"
         android:verticalSpacing="10dp"
@@ -128,17 +141,17 @@
 
 
     <!-- Bottom Button Bar with Bell, Settings, and User Icons -->
-<LinearLayout
-android:id="@+id/bottomButtonBar"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:layout_marginBottom="16dp"
-android:orientation="horizontal"
-android:gravity="center"
-android:layout_alignParentBottom="true">
+    <LinearLayout
+        android:id="@+id/bottomButtonBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_alignParentBottom="true">
 
 
 
-</LinearLayout>
+    </LinearLayout>
 
 </RelativeLayout>

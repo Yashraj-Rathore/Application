@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.dashboard;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -70,6 +71,40 @@ public class DashboardFragment extends Fragment {
             navController.navigate(R.id.action_dashboardFragment_to_galleryFragment);
         });
 
+// Initialize Firebase Database reference
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        // Initialize your button
+       Button btnForceAuthenticate = view.findViewById(R.id.btnForceAuthenticate);
+
+
+        // Listen for changes in the database
+        databaseReference.child("ForceAuthorization").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean forceAuthorization = snapshot.getValue(Boolean.class);
+                if (forceAuthorization != null && forceAuthorization) {
+                    // Disable button if ForceAuthorization is true
+                    btnForceAuthenticate.setEnabled(false);
+                    btnForceAuthenticate.setBackgroundColor(Color.GRAY); // Optional: change button color
+                } else {
+                    // Enable button if ForceAuthorization is false or null
+                    btnForceAuthenticate.setEnabled(true);
+                    btnForceAuthenticate.setBackgroundColor(Color.parseColor("#FF6200EE")); // Optional: reset button color
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle error
+            }
+        });
+
+        // Set the button click listener
+        btnForceAuthenticate.setOnClickListener(buttonview -> {
+            // Update the value in the database
+            databaseReference.child("ForceAuthorization").setValue(true);
+        });
 
 
 
@@ -109,39 +144,6 @@ public class DashboardFragment extends Fragment {
     }
 
 
-
-//    private void retrieveAndDisplayImages(GridView gridView) {
-//        String bucketUrl = "gs://app-proj4000.appspot.com";
-//        FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
-//        StorageReference listRef = storage.getReference(); // Now points to your non-default bucket
-//
-//        listRef.listAll()
-//                .addOnSuccessListener(listResult -> {
-//                    for (StorageReference item : listResult.getItems()) {
-//                        // Only consider JPEG images
-//                        if(item.getName().endsWith(".jpg")) {
-//                            item.getDownloadUrl().addOnSuccessListener(uri -> {
-//                                // Add the URI to your list and notify the adapter
-//                                imageUrls.add(uri);
-//                                BaseAdapter adapter = (BaseAdapter) gridView.getAdapter();
-//                                if (adapter != null) {
-//                                    adapter.notifyDataSetChanged();
-//                                }
-//                            });
-//                        }
-//                    }
-//                })
-//                .addOnFailureListener(new OnFailureListener() {
-//                    @Override
-//                    public void onFailure(@NonNull Exception e) {
-//
-//                    }
-//                });
-//
-//
-//
-//
-//    }
 
 
     private void updateDatabase(String status) {

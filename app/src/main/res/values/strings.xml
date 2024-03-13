@@ -12,6 +12,20 @@
     <string name="user">User</string>
     <string name="channel_name">newImage</string>
     <string name="channel_description">New Image uploaded</string>
-
+    <string name="timer_default">Timer: 00:00</string>
+    <string name="prompt_default">Tap the correct shape</string>
+    <string name="time_left">Time left: %1$d s</string>
+    <string name="game_over">Game Over!</string>
+    <string name="game_over_message">You have run out of time!</string>
+    <string name="tap_shape_prompt">Tap the %2$s %1$s</string>
+    <string name="level_default">Level: %1$d</string>
+    <string name="next_level_message">Welcome to Level %1$d!</string>
+    <string name="exit">Exit</string>
+    <string name="restart">Restart</string>
+    <string name="game_success_title">Success!</string>
+    <string name="game_success_message">You\'ve completed all levels. Please proceed to next action. Press OK.</string>
+    <string name="timer_clear">--:--</string> <!-- For clearing the timer display -->
+    <string name="logo_desc">York University Logo</string>
+    <string name="logo_desc2">Lassonde Logo</string>
 
 </resources>

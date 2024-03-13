@@ -16,18 +16,23 @@
 *const path = require("path");
 *const sharp = require("sharp");
 */
+
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp();
+const {resetMLUpdateLockOnNewFile} = require("./resetLockFunction");
+exports.resetMLUpdateLockOnNewFile = resetMLUpdateLockOnNewFile;
 exports.sendNotificationOnImageUpload = functions.storage.object().onFinalize(
     async (object) => {
+      const targetBucket = "app-proj4000.appspot.com";
       // Check if the file is uploaded to the "images" folder and is a JPEG
-      if (object.contentType === "image/jpeg") {
+      if (object.bucket === targetBucket && object.contentType==="image/jpeg") {
         // Prepare the message for FCM
         const message = {
-          notification: {
+          data: {
+            type: "imageUpload",
             title: "New Image Uploaded",
-            body: "A new image has been added to the gallery:"+ object.name,
+            message: "New image has been added to the gallery: " + object.name,
           },
           // Assuming all devices subscribe to this topic
           topic: "allDevices",
@@ -39,6 +44,29 @@ exports.sendNotificationOnImageUpload = functions.storage.object().onFinalize(
           console.log("Successfully sent message:", response);
         } catch (error) {
           console.error("Error sending message:", error);
+        }
+      }
+    });
+exports.sendNotificationOnNewCodePin = functions.database.ref("/codePin").
+    onWrite(async (change, context) => {
+      const before = change.before.val();
+      const after = change.after.val();
+
+      if (before !== after) {
+        const message = {
+          data: {
+            type: "codePin",
+            title: "New Code Pin Set. Continue to Verify.",
+            message: "A new code pin has been set: " + after,
+          },
+          topic: "allDevices",
+        };
+
+        try {
+          const response = await admin.messaging().send(message);
+          console.log("Successfully sent code pin message:", response);
+        } catch (error) {
+          console.error("Error sending code pin message:", error);
         }
       }
     });

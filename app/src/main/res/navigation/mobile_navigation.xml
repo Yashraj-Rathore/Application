@@ -3,13 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_home">
+    app:startDestination="@+id/navigation_dashboard">
 
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.myapplication.ui.home.HomeFragment"
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home" />
+
 
     <fragment
         android:id="@+id/navigation_dashboard"
@@ -21,11 +22,16 @@
     <action
         android:id="@+id/action_dashboardFragment_to_galleryFragment"
         app:destination="@id/navigation_gallery"
-        app:popUpTo="@id/navigation_home"
+        app:popUpTo="@id/navigation_dashboard"
         app:popUpToInclusive="true" />
 
     <action android:id="@+id/action_global_navigation_gallery"
         app:destination="@id/navigation_gallery"
+        app:popUpToInclusive="true"/>
+
+    <action android:id="@+id/action_global_navigation_home"
+        app:destination="@id/navigation_home"
+        app:popUpTo="@id/navigation_dashboard"
         app:popUpToInclusive="true"/>
 
     <fragment

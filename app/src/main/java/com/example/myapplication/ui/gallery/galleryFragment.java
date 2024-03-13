@@ -1,6 +1,7 @@
 package com.example.myapplication.ui.gallery;
 
 
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -51,11 +52,16 @@ import java.util.stream.Collectors;
 public class galleryFragment extends Fragment {
 
 
-    private GridView gridView; 
+    private GridView gridView;
     private ImageAdapter adapter;
 
     private ActivityGalleryBinding binding;
     private ArrayList<String> imagePaths;
+    private TextView textViewProcessedResults2,textViewProcessedResults1;
+    private DatabaseReference databaseRefML_End, databaseRefML2, databaseRefML_Update_Lock;
+    private StorageReference textFileRef2;
+    private Boolean previousML2Status = false;
+
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -72,8 +78,19 @@ public class galleryFragment extends Fragment {
         adapter = new ImageAdapter(getActivity(), imageItems); // Initialize the adapter with ImageItem list
         gridView.setAdapter(adapter);
 
+        databaseRefML_End = FirebaseDatabase.getInstance().getReference("ML_End");
+        databaseRefML2 = FirebaseDatabase.getInstance().getReference("ML_2");
+        databaseRefML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
+        textFileRef2 = FirebaseStorage.getInstance().getReference("face_recognition_status.txt");
+
+
+
+
+
+
         // Retrieve and display images
         retrieveAndDisplayImages();
+        setupListeners();
 
         return root;
 
@@ -81,6 +98,13 @@ public class galleryFragment extends Fragment {
     }
 
     private void retrieveAndDisplayImages() {
+        Context context = getContext();
+        if (context == null) {
+            // Context is not available, can't proceed
+            return;
+        }
+
+
         String bucketUrl = "gs://app-proj4000.appspot.com";
         FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
         StorageReference storageRef = storage.getReference();
@@ -143,24 +167,172 @@ public class galleryFragment extends Fragment {
     }
 
 
+
+
+
+
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        textViewProcessedResults2 = view.findViewById(R.id.textViewProcessedResults2);
+       textViewProcessedResults1 = getView().findViewById(R.id.textViewProcessedResults);
+
+
+
+//        String bucketUrl = "gs://app-proj4000.appspot.com";
+//        FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
+//
+//
+//// Initialize your TextView
+//        TextView textViewProcessedResults = view.findViewById(R.id.textViewProcessedResults);
+//
+//// Reference to your text file in Firebase Storage
+//        StorageReference textFileRef = storage.getReference("proccessed_results.txt");
+//
+//// Create a local file to store the download
+//        File localFile = null;
+//        try {
+//            localFile = File.createTempFile("processedResults", "txt", getContext().getCacheDir());
+//        } catch (IOException e) {
+//            // Handle IOException by showing a message to the user
+//            textViewProcessedResults.setText("Unable to create local file.");
+//            e.printStackTrace();
+//            return;
+//        }
+//
+//        File finalLocalFile = localFile;
+//        textFileRef.getFile(localFile)
+//                .addOnSuccessListener(taskSnapshot -> {
+//                    // Read text from file in a background thread
+//                    new Thread(() -> {
+//                        StringBuilder text = new StringBuilder();
+//                        try {
+//                            BufferedReader br = new BufferedReader(new FileReader(finalLocalFile));
+//                            String line;
+//
+//                            while ((line = br.readLine()) != null) {
+//                                text.append(line);
+//                                text.append('\n');
+//                            }
+//                            br.close();
+//                        } catch (IOException e) {
+//                            // Handle exceptions on the background thread
+//                            e.printStackTrace();
+//                        }
+//
+//                        // Update the TextView on the main thread
+//                        String finalText = text.toString();
+//                        getActivity().runOnUiThread(() -> textViewProcessedResults.setText(finalText));
+//                    }).start();
+//                })
+//                .addOnFailureListener(exception -> {
+//                    // Handle any errors in file download
+//                    textViewProcessedResults.setText("Failed to download results.");
+//                    exception.printStackTrace();
+//                });
+
+//        StorageReference textFileRef2 = FirebaseStorage.getInstance().getReference("face_recognition_status.txt");
+//        TextView textViewProcessedResults2 = view.findViewById(R.id.textViewProcessedResults2);
+//        DatabaseReference databaseRef3 = FirebaseDatabase.getInstance().getReference("ML_End");
+//        DatabaseReference databaseRefML2 = FirebaseDatabase.getInstance().getReference("ML_2");
+//        DatabaseReference ML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
+//
+//        // Listen for changes in ML_2
+//        databaseRefML2.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                Boolean ml2Status = snapshot.getValue(Boolean.class);
+//                // If ML_2 changes, force ML_End to false
+//                if (ml2Status != null) {
+//                    databaseRef3.setValue(false);
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {
+//                // Handle possible errors
+//            }
+//        });
+//
+//        // Your existing logic to download and process the text file
+//        try {
+//            File localFile2 = File.createTempFile("faceRecognitionStatus", "txt", getContext().getCacheDir());
+//            textFileRef2.getFile(localFile2).addOnSuccessListener(taskSnapshot -> {
+//                // Process file content
+//                processFileContent(localFile2, textViewProcessedResults2, databaseRef3);
+//            }).addOnFailureListener(exception -> {
+//                textViewProcessedResults2.setText("Failed to download results.");
+//                exception.printStackTrace();
+//            });
+//        } catch (IOException e) {
+//            textViewProcessedResults2.setText("Unable to create local file.");
+//            e.printStackTrace();
+//        }
+
+    }
+
+
+
+    private void setupListeners() {
+        // Listen for changes in ML_2
+        databaseRefML2.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean currentML2Status = snapshot.getValue(Boolean.class);
+                if (currentML2Status != null && !currentML2Status.equals(previousML2Status)) {
+                    // The value of ML_2 has changed
+                    // Check if it has changed to its opposite boolean value
+                    // Since we already checked for null and difference, it's certain it has changed
+
+                    // Perform your actions based on the change
+                    databaseRefML_End.setValue(false); // Force ML_End to false if ML_2 changes
+                    databaseRefML_Update_Lock.setValue(true); // Engage the update lock
+
+                    // Update the previousML2Status for future comparisons
+                    previousML2Status = currentML2Status;
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        // Listen for changes to ML_Update_Lock
+        databaseRefML_Update_Lock.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean lockStatus = snapshot.getValue(Boolean.class);
+                if (lockStatus != null && !lockStatus) {
+                    downloadAndProcessTextFile();
+                    downloadAndProcessFile(); // Only proceed if the lock is disengaged
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void downloadAndProcessTextFile() {
+        Context context = getContext();
+        if (context == null) {
+            // Context is not available, can't proceed
+            return;
+        }
+        File localFile = null;
         String bucketUrl = "gs://app-proj4000.appspot.com";
         FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
 
-// Initialize your TextView
-        TextView textViewProcessedResults = view.findViewById(R.id.textViewProcessedResults);
 
-// Reference to your text file in Firebase Storage
-        StorageReference textFileRef = storage.getReference("proccessed_results.txt");
+        // Reference to your text file in Firebase Storage
+        StorageReference textFileRef = storage.getReference("processed_results.txt");
 
-// Create a local file to store the download
-        File localFile = null;
+
         try {
             localFile = File.createTempFile("processedResults", "txt", getContext().getCacheDir());
         } catch (IOException e) {
             // Handle IOException by showing a message to the user
-            textViewProcessedResults.setText("Unable to create local file.");
+            textViewProcessedResults1.setText("Unable to create local file.");
             e.printStackTrace();
             return;
         }
@@ -186,61 +358,93 @@ public class galleryFragment extends Fragment {
                         }
 
                         // Update the TextView on the main thread
-                        String finalText = text.toString();
-                        getActivity().runOnUiThread(() -> textViewProcessedResults.setText(finalText));
+                        String finalText = text.toString().trim(); // Trim to remove the last newline character
+                        getActivity().runOnUiThread(() -> textViewProcessedResults1.setText(finalText));
                     }).start();
                 })
                 .addOnFailureListener(exception -> {
                     // Handle any errors in file download
-                    textViewProcessedResults.setText("Failed to download results.");
+                    textViewProcessedResults1.setText("Failed to download results.");
                     exception.printStackTrace();
                 });
 
 
-        // Reference to your 'images/' directory in Firebase Storage
-
-//        StorageReference storageRef = storage.getReference(); // Now points to your non-default bucket
-//
-//        storageRef.listAll()
-//                .addOnSuccessListener(listResult -> {
-//                    // Initialize a new list to hold the download URLs
-//                    ArrayList<String> newImagePaths = new ArrayList<>();
-//
-//                    // Track the number of async operations we need to wait for
-//                    AtomicInteger itemCount = new AtomicInteger();
-//
-//                    for (StorageReference itemRef : listResult.getItems()) {
-//                        // Only consider JPEG images
-//                        if (itemRef.getName().toLowerCase().endsWith(".jpg") || itemRef.getName().toLowerCase().endsWith(".jpeg")) {
-//                            itemCount.incrementAndGet(); // Increment count for JPEG files
-//                            // For each JPEG item, get the download URL
-//                            itemRef.getDownloadUrl().addOnSuccessListener(uri -> {
-//                                // "uri" is the download URL for the image
-//                                newImagePaths.add(uri.toString()); // Add URI to your list as a String
-//                                if (newImagePaths.size() == itemCount.get()) {
-//                                    // Once all URIs are fetched, update your adapter
-//                                    adapter.setImageUrls(newImagePaths);
-//                                    adapter.notifyDataSetChanged();
-//                                }
-//                            }).addOnFailureListener(e -> {
-//                                // Handle any errors in getting download URLs
-//                                if (itemCount.decrementAndGet() == 0) {
-//                                    // Optionally, update UI or notify users that some images might not load
-//                                    adapter.setImageUrls(newImagePaths);
-//                                    adapter.notifyDataSetChanged();
-//                                }
-//                            });
-//                        }
-//                    }
-//                })
-//                .addOnFailureListener(e -> {
-//                    // Handle any errors here, such as failing to list the items
-//                });
-//    }
-//
-//
-
     }
+
+    private void downloadAndProcessFile() {
+        Context context = getContext();
+        if (context == null) {
+            // Context is not available, can't proceed
+            return;
+        }
+        try {
+            File localFile2 ;
+            localFile2= File.createTempFile("faceRecognitionStatus", "txt", getContext().getCacheDir());
+            textFileRef2.getFile(localFile2).addOnSuccessListener(taskSnapshot -> {
+                processFileContent(localFile2);
+            }).addOnFailureListener(exception -> {
+                textViewProcessedResults2.setText("Failed to download results.");
+            });
+        } catch (IOException e) {
+            textViewProcessedResults2.setText("Unable to create local file.");
+        }
+    }
+
+    private void processFileContent(File file) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String status = br.readLine();
+            getActivity().runOnUiThread(() -> {
+                if ("True".equals(status)) {
+                    textViewProcessedResults2.setText("Verified!");
+                    updateDatabaseAuthorization(true);
+                    // Set ML_End true directly here based on file content
+                    databaseRefML_End.setValue(true);
+                } else if ("False".equals(status)) {
+                    textViewProcessedResults2.setText("Not Verified!");
+                    updateDatabaseAuthorization(false);
+                    databaseRefML_End.setValue(true);
+                    // Depending on your logic, set ML_End to false here if necessary
+                    // databaseRefML_End.setValue(false);
+                }
+                // Reset ML_Update_Lock to allow for new updates
+                databaseRefML_Update_Lock.setValue(false);
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            getActivity().runOnUiThread(() -> textViewProcessedResults2.setText("Error reading status."));
+        }
+    }
+
+    private void processFileContent(File file, TextView textView, DatabaseReference databaseRef) {
+        DatabaseReference databaseRef3 = FirebaseDatabase.getInstance().getReference("ML_End");
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String status = br.readLine(); // Assume file has one line that is either "True" or "False"
+            getActivity().runOnUiThread(() -> {
+                if ("True".equals(status)) {
+                    textView.setText("Verified!");
+                    updateDatabaseAuthorization(true);
+                    databaseRef3.setValue(true);
+
+                } else if ("False".equals(status)) {
+                    textView.setText("Not Verified!");
+                    updateDatabaseAuthorization(false);
+                    databaseRef3.setValue(true);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+            getActivity().runOnUiThread(() -> textView.setText("Error reading status."));
+        }
+    }
+
+    private void updateDatabaseAuthorization(boolean isAuthorized) {
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("Authorization");
+        databaseRef.setValue(isAuthorized);
+    }
+
+
+
 
     @Override
     public void onDestroyView() {

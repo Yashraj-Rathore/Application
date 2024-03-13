@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -20,14 +21,49 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        // Check if the message contains a notification payload.
+//        // Check if the message contains a notification payload.
+//        if (remoteMessage.getNotification() != null) {
+//            sendNotification(remoteMessage.getNotification().getTitle(),
+//                    remoteMessage.getNotification().getBody());
+//        }
+
+        // Prioritize data payload.
+        // Prioritize data payload.
+
+        if (remoteMessage.getData().size() > 0) {
+            // You can use different keys to identify the type of notification.
+            String type = remoteMessage.getData().get("type");
+            if ("imageUpload".equals(type)) {
+                String title = remoteMessage.getData().get("title");
+                String messageBody = remoteMessage.getData().get("message");
+                sendNotificationImage(title, messageBody);
+            } else if ("codePin".equals(type)) {
+                String title = remoteMessage.getData().get("title");
+                String messageBody = remoteMessage.getData().get("message");
+                sendNotificationCodePin(title, messageBody);
+            }
+        }
+
+        // Check if message contains a notification payload and handle it as a fallback.
         if (remoteMessage.getNotification() != null) {
-            sendNotification(remoteMessage.getNotification().getTitle(),
+            sendNotificationImage(remoteMessage.getNotification().getTitle(),
                     remoteMessage.getNotification().getBody());
         }
     }
 
-    private void sendNotification(String title, String messageBody) {
+
+    private void sendNotificationImage(String title, String messageBody) {
+
+        SharedPreferences prefs = getSharedPreferences("notifications", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        // Create a unique key for each notification based on current time
+        String notifKey = "notif_" + System.currentTimeMillis();
+        editor.putString(notifKey + "_title", title);
+        editor.putString(notifKey + "_message", messageBody);
+        editor.apply();
+
+
+
         // Create an explicit intent for your MainActivity
         Intent intent = new Intent(this, MainActivity.class);
 
@@ -62,5 +98,42 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         notificationManager.notify(0, notificationBuilder.build());
     }
+
+    private void sendNotificationCodePin(String title, String messageBody) {
+        SharedPreferences prefs = getSharedPreferences("notifications", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        // Create a unique key for each notification based on current time
+        String notifKey = "codePin_" + System.currentTimeMillis();
+        editor.putString(notifKey + "_title", title);
+        editor.putString(notifKey + "_message", messageBody);
+        editor.apply();
+
+        // Create an explicit intent for your MainActivity
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra("navigateTo", "home"); // Directs to the HomeFragment where they can enter the pin
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+
+        String channelId = MainActivity.CHANNEL_ID;
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                .setContentTitle("New Pin Code")
+                .setContentText("A new pin code has been set. Tap to enter it.")
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        // Create the notification channel if it does not exist
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId, "Code Pin Notifications", NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        // Notify the user
+        notificationManager.notify(0, notificationBuilder.build()); // Use a different ID than for image notifications
+    }
+
+
     }
 
