@@ -1,0 +1,46 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:id="@+id/instructionsTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Instructions"
+        android:textSize="30sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/instructionsTextView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="When you press ready, you will be prompted to tap a colored shape. You must do this under the allotted time for each level.\n\nAdditionally, there are three levels with a decreased time limit. The levels begin immediately after succeeding on a level!\n\nMake sure to tap the correct colored shape to proceed to the next level."
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/instructionsTextView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/readyButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap If Ready!"
+        android:background="#C20000"
+        android:textColor="#FFFFFF"
+        app:layout_constraintTop_toBottomOf="@+id/instructionsTextView1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp"
+        android:textSize="18sp"
+        android:paddingLeft="32dp"
+        android:paddingRight="32dp"/>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

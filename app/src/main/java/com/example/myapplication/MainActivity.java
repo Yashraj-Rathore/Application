@@ -32,6 +32,7 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import com.example.antitheft.databinding.ActivityMainBinding;
+import com.google.common.net.InternetDomainName;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.appcheck.FirebaseAppCheck;
 import com.google.firebase.appcheck.playintegrity.PlayIntegrityAppCheckProviderFactory;
@@ -74,7 +75,16 @@ public class MainActivity extends AppCompatActivity {
 
         NavigationUI.setupWithNavController(binding.navView, navController);
 
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
+        // Set ForceAuthorization to false whenever the app starts or MCU sets it.
+        databaseReference.child("ForceAuthorization").setValue(false).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d("MainActivity", "ForceAuthorization set to false successfully.");
+            } else {
+                Log.e("MainActivity", "Failed to set ForceAuthorization.", task.getException());
+            }
+        });
 
         FirebaseMessaging.getInstance().subscribeToTopic("allDevices")
                 .addOnCompleteListener(task -> {
@@ -103,146 +113,6 @@ public class MainActivity extends AppCompatActivity {
 
         handleIntent(getIntent());
 
-        
-
-//        // Check if we have read permission
-//        int permission = ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-//
-//        if (permission != PackageManager.PERMISSION_GRANTED) {
-//            // We don't have permission so prompt the user
-//            ActivityCompat.requestPermissions(
-//                    this,
-//                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-//                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE
-//            );
-//        }
-
-//        Switch alarmSwitch = findViewById(R.id.lockSwitch); // Ensure this ID exists
-//        if (alarmSwitch != null) {
-//            alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//                @Override
-//                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                    // Handle switch change
-//                    FirebaseDatabase database = FirebaseDatabase.getInstance();
-//                    DatabaseReference myRef = database.getReference("alarm");
-//                    if(isChecked) {
-//                        myRef.setValue("ON");
-//                    } else {
-//                        myRef.setValue("OFF");
-//                    }
-//                }
-//            });
-//        } else {
-//            // Log an error or throw an exception that the switch is not found
-//            Log.e("MainActivity", "Switch not found");
-//        }
-//
-//
-//    }
-//
-//    private void updateDatabase(String status) {
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference myRef = database.getReference("alarm");
-//        myRef.setValue(status);
-//    }
-//
-//    private boolean checkAndRequestPermissions() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            if (!Environment.isExternalStorageManager()) {
-//                Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-//                intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
-//                startActivityForResult(intent, PERMISSIONS_REQUEST_MANAGE_STORAGE);
-//                return false;
-//            }
-//        } else {
-//            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-//                return false;
-//            }
-//        }
-//        return true;
-//    }
-//
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//        if (requestCode == PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE) {
-//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                updateDatabase("ON");
-//            } else {
-//                Log.d("Permissions", "Read external storage permission was denied");
-//            }
-//        }
-//    }
-//
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if (requestCode == PERMISSIONS_REQUEST_MANAGE_STORAGE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            if (Environment.isExternalStorageManager()) {
-//                updateDatabase("ON");
-//            } else {
-//                Log.d("Permissions", "Manage external storage permission was denied");
-//            }
-//        }
-//    }
-//}
-
-//        if (ContextCompat.checkSelfPermission(this,
-//                Manifest.permission.READ_EXTERNAL_STORAGE)
-//                != PackageManager.PERMISSION_GRANTED) {
-//
-//            // Permission is not granted
-//            ActivityCompat.requestPermissions(this,
-//                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
-//                    MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-//        } else {
-//            // Permission has already been granted
-//            //uploadImage();
-//        }
-//
-//        //checkAndRequestPermissions();
-//
-//    }
-
-
-//    private void checkAndRequestPermissions() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            // On Android 11 and above, use the MANAGE_EXTERNAL_STORAGE permission
-//            if (!Environment.isExternalStorageManager()) {
-//                // Request for the permission
-//                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-//                intent.addCategory("android.intent.category.DEFAULT");
-//                intent.setData(Uri.parse(String.format("package:%s", getApplicationContext().getPackageName())));
-//                startActivityForResult(intent, PERMISSIONS_REQUEST_MANAGE_STORAGE);
-//            } else {
-//                // You have permission, proceed further
-//                uploadImage();
-//            }
-//        } else {
-//            // For Android 10 and below, use the READ_EXTERNAL_STORAGE permission
-//            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-//            } else {
-//                // You have permission, proceed further
-//                uploadImage();
-//            }
-//        }
-//    }
-//
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//        switch (requestCode) {
-//            case PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE:
-//                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                    // Permission was granted
-//                    uploadImage();
-//                } else {
-//                    // Permission was denied
-//                    Log.d("Permissions", "Read external storage permission was denied");
-//                }
-//                break;
         }
 
     @Override
@@ -254,16 +124,21 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleIntent(Intent intent) {
         // Defer navigation until the NavController is ready
-        // This is especially important when the app is just starting up
         findViewById(R.id.nav_host_fragment_activity_main).post(() -> {
             NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
             String navigateTo = intent.getStringExtra("navigateTo");
-            if ("gallery".equals(navigateTo)) {
-                // Use the global action to navigate to the GalleryFragment
+            String action = intent.getAction();
+
+            if ("home".equals(navigateTo)) {
+                // Navigate to the HomeFragment
+                navController.navigate(R.id.action_global_navigation_home);
+            } else if ("gallery".equals(navigateTo)) {
+                // Navigate to the GalleryFragment
                 navController.navigate(R.id.action_dashboardFragment_to_galleryFragment);
             }
         });
     }
+
 
 
     private void createNotificationChannel() {
@@ -306,109 +181,3 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-//    private void uploadImage() {
-//        // Get the default Firebase Storage instance
-//        FirebaseStorage storage = FirebaseStorage.getInstance();
-//
-//        // Create a storage reference from our app
-//        StorageReference storageRef = storage.getReference();
-//
-//        // Get the file reference
-//        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "lock.jpg");
-//
-//        // Check if the file exists
-//        if (!file.exists()) {
-//            Log.e("Upload", "File does not exist at path: " + file.getPath());
-//            return;
-//        }
-//
-//        // Get the Uri for the file
-//        Uri fileUri = Uri.fromFile(file);
-//
-//        // Create a reference to the file to upload
-//        StorageReference riversRef = storageRef.child("images2/" + fileUri.getLastPathSegment());
-//
-//        // Initiate the upload
-//        UploadTask uploadTask = riversRef.putFile(fileUri);
-//
-//        // Register observers to listen for when the upload is done or if it fails
-//        uploadTask.addOnFailureListener(exception -> {
-//            // Handle unsuccessful uploads
-//            Log.e("Upload", "Upload failed: " + exception.getMessage(), exception);
-//        }).addOnSuccessListener(taskSnapshot -> {
-//            // taskSnapshot.getMetadata() contains file metadata such as size, content-type, etc.
-//            // Here you can also retrieve the download URL
-//            Log.d("Upload", "Upload succeeded");
-//            StorageReference ref = taskSnapshot.getMetadata().getReference();
-//            if (ref != null) {
-//                ref.getDownloadUrl().addOnSuccessListener(uri -> {
-//                    String downloadUrl = uri.toString();
-//                    Log.d("Download URL", "File uploaded to: " + downloadUrl);
-//                });
-//            }
-//        });
-//    }
-//
-//
-//
-//}
-
-
-//    //Firebase Realtime Database code
-//    FirebaseDatabase database = FirebaseDatabase.getInstance();
-//    DatabaseReference myRef = database.getReference("alarm");
-//    DatabaseReference myRef2 = database.getReference("motion");
-//    DatabaseReference myRef3 = database.getReference("user_recognition");
-//
-//    // Write a message to the database
-//        myRef.setValue("ON");
-//        myRef2.setValue("OFF");
-//        myRef3.setValue("OFF");
-//
-//    // Read from the database
-//        myRef.addValueEventListener(new ValueEventListener() {
-//        @Override
-//        public void onDataChange (DataSnapshot dataSnapshot){
-//            // This method is called once with the initial value and again
-//            // whenever data at this location is updated.
-//            String value = dataSnapshot.getValue(String.class);
-//            Log.d("Database", "Value is: " + value);
-//        }
-//
-//        @Override
-//        public void onCancelled (DatabaseError error){
-//            // Failed to read value
-//            Log.w("Database", "Failed to read value.", error.toException());}
-//    });
-//
-//        myRef2.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange (DataSnapshot dataSnapshot){
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-//                String value = dataSnapshot.getValue(String.class);
-//                Log.d("Database", "Value is: " + value);}
-//
-//            @Override
-//            public void onCancelled (DatabaseError error){
-//                // Failed to read value
-//                Log.w("Database", "Failed to read value.", error.toException());}
-//        });
-//        myRef3.addValueEventListener(new ValueEventListener() {
-//            @Override
-//            public void onDataChange (DataSnapshot dataSnapshot){
-//                // This method is called once with the initial value and again
-//                // whenever data at this location is updated.
-//                String value = dataSnapshot.getValue(String.class);
-//                Log.d("Database", "Value is: " + value);}
-//
-//            @Override
-//            public void onCancelled (DatabaseError error){
-//                // Failed to read value
-//                Log.w("Database", "Failed to read value.", error.toException());}
-//        });
-//
-//
-//    }
-//}

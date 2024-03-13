@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="Processed Results will appear here"
+        android:text=""
         android:padding="16dp"
         android:textSize="20sp"/>
 
@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:layout_below="@id/textViewProcessedResults"
-        android:text="Verfied Results will appear here"
+        android:text=""
         android:padding="16dp"
         android:textSize="20sp"/>
 

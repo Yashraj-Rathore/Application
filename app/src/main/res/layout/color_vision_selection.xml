@@ -1,0 +1,93 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to Our Cognitve Game"
+        android:textSize="24sp"
+        android:layout_marginBottom="32dp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please Select Your Color Vision to Proceed!"
+        android:textSize="24sp"
+        android:layout_marginBottom="32dp"
+        android:textStyle="bold"
+        android:gravity="center_horizontal"/>
+
+    <Button
+        android:id="@+id/btnNominal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Standard Vision"
+        android:background="@drawable/button_selector"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnProtanopia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Protanopia / Protanomaly"
+        android:background="@drawable/button_selector"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnDeuteranopia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Deuteranopia / Deuteranomaly"
+        android:background="@drawable/button_selector"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnTritanopia"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tritanopia / Tritanomaly"
+        android:background="@drawable/button_selector"
+        android:textColor="#000000"
+        android:textSize="18sp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp">
+        <ImageView
+            android:id="@+id/logoImageView"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:src="@drawable/york"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/logo_desc"
+            android:adjustViewBounds="true"
+            android:layout_marginEnd="8dp"/>
+
+        <ImageView
+            android:id="@+id/logoImageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:src="@drawable/lassonde"
+            android:scaleType="fitCenter"
+            android:contentDescription="@string/logo_desc2"
+            android:adjustViewBounds="true"/>
+
+    </LinearLayout>
+
+</LinearLayout>
