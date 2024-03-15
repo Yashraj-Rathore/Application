@@ -96,21 +96,12 @@ public class galleryFragment extends Fragment {
         // Retrieve and display images
         retrieveAndDisplayImages();
 
-        DeviceStateChecker stateChecker = new DeviceStateChecker();
-        stateChecker.setDeviceStateListener(new DeviceStateChecker.DeviceStateListener() {
-            @Override
-            public void onStateChanged(DeviceState state) {
-                // Respond to the state change
-                if(state == DeviceState.STATE_ONE) {
-
-                    setupListeners();
-
-                }
+        setupListeners();
 
 
 
-            }
-        });
+
+
 
 
 
