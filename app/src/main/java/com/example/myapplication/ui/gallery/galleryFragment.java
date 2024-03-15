@@ -22,6 +22,8 @@ import android.content.Intent;
 import android.widget.GridView;
 
 
+import com.example.myapplication.DeviceState;
+import com.example.myapplication.DeviceStateChecker;
 import com.example.myapplication.ui.dashboard.DashboardViewModel;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -61,6 +63,9 @@ public class galleryFragment extends Fragment {
     private DatabaseReference databaseRefML_End, databaseRefML2, databaseRefML_Update_Lock;
     private StorageReference textFileRef2;
     private Boolean previousML2Status = false;
+    private DeviceState currentState;
+
+    private DeviceStateChecker stateChecker;
 
 
 
@@ -91,13 +96,33 @@ public class galleryFragment extends Fragment {
         // Retrieve and display images
         retrieveAndDisplayImages();
 
+        DeviceStateChecker stateChecker = new DeviceStateChecker();
+        stateChecker.setDeviceStateListener(new DeviceStateChecker.DeviceStateListener() {
+            @Override
+            public void onStateChanged(DeviceState state) {
+                // Respond to the state change
+                if(state == DeviceState.STATE_ONE) {
 
-        setupListeners();
+                    setupListeners();
+
+                }
+
+
+
+            }
+        });
+
+
+
+
+
 
         return root;
 
 
     }
+
+
 
     private void retrieveAndDisplayImages() {
         Context context = getContext();
