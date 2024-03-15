@@ -82,6 +82,7 @@ public class HomeFragment extends Fragment {
 
     }
 
+
     private void checkTimeCurrentAndSetup() {
         timeCurrentRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

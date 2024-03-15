@@ -90,6 +90,8 @@ public class galleryFragment extends Fragment {
 
         // Retrieve and display images
         retrieveAndDisplayImages();
+
+
         setupListeners();
 
         return root;
