@@ -61,6 +61,10 @@ public class galleryFragment extends Fragment {
     private ArrayList<String> imagePaths;
     private TextView textViewProcessedResults2,textViewProcessedResults1;
     private DatabaseReference databaseRefML_End, databaseRefML2, databaseRefML_Update_Lock;
+
+    private DatabaseReference codePinRef;
+
+    private DatabaseReference codePin_end;
     private StorageReference textFileRef2;
     private Boolean previousML2Status = false;
     private DeviceState currentState;
@@ -74,7 +78,9 @@ public class galleryFragment extends Fragment {
         galleryViewModel galleryViewModel = new ViewModelProvider(this).get(galleryViewModel.class);
         binding = ActivityGalleryBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
         final TextView textView = binding.textGallery;
+
         galleryViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
 
         // Grid and adapter setup
@@ -87,6 +93,9 @@ public class galleryFragment extends Fragment {
         databaseRefML2 = FirebaseDatabase.getInstance().getReference("ML_2");
         databaseRefML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
         textFileRef2 = FirebaseStorage.getInstance().getReference("face_recognition_status.txt");
+
+        codePinRef = FirebaseDatabase.getInstance().getReference("codePin");
+        codePin_end = FirebaseDatabase.getInstance().getReference("codePin_end");
 
 
 
@@ -304,6 +313,7 @@ public class galleryFragment extends Fragment {
 
                     // Perform your actions based on the change
                     databaseRefML_End.setValue(false); // Force ML_End to false if ML_2 changes
+                    codePin_end.setValue(false);
                     databaseRefML_Update_Lock.setValue(true); // Engage the update lock
 
                     // Update the previousML2Status for future comparisons
