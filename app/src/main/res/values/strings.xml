@@ -23,9 +23,11 @@
     <string name="exit">Exit</string>
     <string name="restart">Restart</string>
     <string name="game_success_title">Success!</string>
-    <string name="game_success_message">You\'ve completed all levels. Please proceed to next action. Press OK.</string>
+    <string name="game_success_message">You\'ve completed all levels.Press OK and go to dashboard to control Servo</string>
     <string name="timer_clear">--:--</string> <!-- For clearing the timer display -->
     <string name="logo_desc">York University Logo</string>
     <string name="logo_desc2">Lassonde Logo</string>
+    <string name="title_activity_login">Login</string>
+    <string name="title_activity_signup">SignUp</string>
 
 </resources>

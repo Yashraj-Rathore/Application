@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="32dp"
-        android:text="Anti Theft\nSignup"
+        android:text="Anti Theft"
         android:textColor="#FFFFFF"
         android:textSize="24sp" />
 
@@ -24,7 +24,7 @@
         android:layout_marginTop="44dp"
         android:background="@drawable/edittext_background"
         android:hint="Username"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/black"
         android:textColorHint="#070707" />
 
     <EditText
@@ -35,7 +35,8 @@
         android:layout_marginTop="84dp"
         android:background="@drawable/edittext_background"
         android:hint="Email"
-        android:textColor="#FFFFFF"
+        android:inputType="textEmailAddress"
+        android:textColor="@color/black"
         android:textColorHint="#070707" />
 
     <EditText
@@ -47,7 +48,7 @@
         android:background="@drawable/edittext_background"
         android:hint="Password"
         android:inputType="textPassword"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/black"
         android:textColorHint="#040303" />
 
     <TextView

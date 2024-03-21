@@ -28,4 +28,8 @@ public class InstructionsActivity extends AppCompatActivity {
         intent.putExtra("ColorVisionType", colorVisionType); // Pass the color vision type to MainActivity
         startActivity(intent);
     }
+
+
+
+
 }
