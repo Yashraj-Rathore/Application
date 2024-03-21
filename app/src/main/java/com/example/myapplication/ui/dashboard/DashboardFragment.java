@@ -29,6 +29,7 @@ import com.example.antitheft.R;
 import com.example.antitheft.databinding.FragmentDashboardBinding;
 import com.example.myapplication.LoginActivity;
 import com.example.myapplication.ui.gallery.ImageAdapter;
+import com.example.myapplication.ui.home.HomeFragment;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.EmailAuthProvider;
@@ -47,16 +48,12 @@ import java.util.ArrayList;
 public class DashboardFragment extends Fragment {
 
     private FragmentDashboardBinding binding;
-    private static final int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 123;
-    private static final int PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 1;
-    private static final int PERMISSIONS_REQUEST_MANAGE_STORAGE = 2;
     private Switch alarmSwitch;
     private Switch servoSwitch;
 
     private Button btnAuthorities;
 
     private ArrayList<Uri> imageUrls = new  ArrayList<>();
-    private ImageAdapter imageAdapter;
 
     private FirebaseAuth mAuth;
 
@@ -104,7 +101,8 @@ public class DashboardFragment extends Fragment {
                 if (forceAuthorization != null) {
                     btnForceAuthenticate.setEnabled(!forceAuthorization);
                     // Set LockHandler to true if forceAuthorization is true, otherwise false
-                    databaseReference.child("LockHandler").setValue(forceAuthorization);
+
+                    //databaseReference.child("LockHandler").setValue(forceAuthorization);
                 }
             }
 
@@ -209,7 +207,7 @@ public class DashboardFragment extends Fragment {
                 Boolean authorization = authorizationSnapshot.getValue(Boolean.class);
 
                 // Add a ValueEventListener to listen to changes in ML_end
-                databaseReference.child("ML_End").addListenerForSingleValueEvent(new ValueEventListener() {
+                databaseReference.child("ML_end").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot mlEndSnapshot) {
                         Boolean mlEnd = mlEndSnapshot.getValue(Boolean.class);
@@ -306,7 +304,10 @@ public class DashboardFragment extends Fragment {
                                     // Toggle ForceAuthorization and set LockHandler accordingly
                                     boolean newForceAuthorization = forceAuthorization == null || !forceAuthorization;
                                     databaseReference.child("ForceAuthorization").setValue(newForceAuthorization);
-                                    databaseReference.child("LockHandler").setValue(newForceAuthorization);
+                                    //databaseReference.child("LockHandler").setValue(newForceAuthorization);
+                                    Toast.makeText(getActivity(), "Navigate to Home screen for game.", Toast.LENGTH_SHORT).show();
+
+
                                 }
 
                                 @Override

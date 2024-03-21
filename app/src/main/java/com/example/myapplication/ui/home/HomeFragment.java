@@ -43,12 +43,14 @@ public class HomeFragment extends Fragment {
     private Button startGameButton;
     private DatabaseReference timeCurrentRef;
     private DatabaseReference codePinRef;
+    private DatabaseReference ForceAuthorization;
 
     private DatabaseReference codePin_end;
     private DatabaseReference codePin_result;
     private String currentCodePin = "";
     private Boolean timeCurrentStatus = null;
     private CountDownTimer countDownTimer;
+    Boolean forceAuthorization=false;
 
 
 
@@ -85,6 +87,30 @@ public class HomeFragment extends Fragment {
         codePinRef = FirebaseDatabase.getInstance().getReference("codePin");
         codePin_end = FirebaseDatabase.getInstance().getReference("codePin_end");
         codePin_result = FirebaseDatabase.getInstance().getReference("codePin_result");
+        codePin_result = FirebaseDatabase.getInstance().getReference("codePin_result");
+        ForceAuthorization=FirebaseDatabase.getInstance().getReference("ForceAuthorization");
+        ForceAuthorization.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                forceAuthorization = dataSnapshot.getValue(Boolean.class);
+                if (Boolean.TRUE.equals(forceAuthorization)) {
+                    startGameButton.setEnabled(true);
+                    tvCodePinMessage.setText("Bypassing Codepin due to Force Authorization");
+
+                }
+                else {
+                    startGameButton.setEnabled(false); // Or any default state you want
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("AuthorizationListener", "Error listening for Authorization", databaseError.toException());
+            }
+        });
+
+
+
+
 
         // Continuously listen for new codePin
         codePinRef.addValueEventListener(new ValueEventListener() {
@@ -132,6 +158,7 @@ public class HomeFragment extends Fragment {
 
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
@@ -141,7 +168,27 @@ public class HomeFragment extends Fragment {
         tvCodePinMessage.setText("");
         // Reset the validation and game start state as necessary
         validateButton.setEnabled(false);
-        startGameButton.setEnabled(false);
+
+        ForceAuthorization.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                forceAuthorization = dataSnapshot.getValue(Boolean.class);
+                if (Boolean.TRUE.equals(forceAuthorization)) {
+                    startGameButton.setEnabled(true);
+                    tvCodePinMessage.setText("Bypassing Codepin due to Force Authorization");
+
+                }
+                else {
+                    startGameButton.setEnabled(false); // Or any default state you want
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("AuthorizationListener", "Error listening for Authorization", databaseError.toException());
+            }
+        });
+
+
         // Add other UI reset logic here if needed
     }
 
@@ -199,7 +246,7 @@ public class HomeFragment extends Fragment {
                 timeCurrentStatus = timeCurrent; // Update the latest status
                 if (Boolean.FALSE.equals(timeCurrent)) {
                     // Keep startGameButton disabled as per requirement
-                    startGameButton.setEnabled(false);
+                    //startGameButton.setEnabled(false);
                 }
                 // No else part needed here as we want to validate the code no matter what
             }
@@ -229,7 +276,7 @@ public class HomeFragment extends Fragment {
             processAfterCodeVerification();
         } else {
             tvCodePinMessage.setText("Incorrect code. Please try again.");
-            startGameButton.setEnabled(false);
+            //startGameButton.setEnabled(false);
         }
     }
 
@@ -240,7 +287,7 @@ public class HomeFragment extends Fragment {
             // Directly set CognitiveGameResult to true if timeCurrent is false
             FirebaseDatabase.getInstance().getReference("CognitiveGameResult").setValue(true);
             tvCodePinMessage.setText("Code verified! Navigate to Dashboard for servo control");
-            startGameButton.setEnabled(false); // Keep startGameButton disabled
+            //startGameButton.setEnabled(false); // Keep startGameButton disabled
             etCodePin.setEnabled(false); // Disable EditText
             validateButton.setEnabled(false); // Disable validate button
         } else if (Boolean.TRUE.equals(timeCurrentStatus)) {

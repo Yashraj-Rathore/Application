@@ -24,6 +24,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -46,8 +47,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
-
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
@@ -58,6 +57,18 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_MANAGE_STORAGE = 2;
     private ActivityResultLauncher<String> requestPermissionLauncher;
     public static final String CHANNEL_ID = "new_image_notifications";
+
+    private DatabaseReference cognitiveGameResetRef;
+
+    private DatabaseReference cognitiveGameResultRef;
+    private DatabaseReference cognitiveGameEndRef;
+    private DatabaseReference databaseRefML_End, databaseRefML2, databaseRefML_Update_Lock;
+
+    private DatabaseReference codePinResult;
+
+    private Boolean previousML2Status = false;
+
+    private DatabaseReference codePin_end;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,7 +124,64 @@ public class MainActivity extends AppCompatActivity {
 
         handleIntent(getIntent());
 
-        }
+        cognitiveGameResetRef = FirebaseDatabase.getInstance().getReference("CognitiveGameReset");
+        cognitiveGameResultRef = FirebaseDatabase.getInstance().getReference("CognitiveGameResult");
+        cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("Cognitive_end");
+
+        // Listen for the cognitiveGameReset variable change
+        cognitiveGameResetRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Boolean reset = dataSnapshot.getValue(Boolean.class);
+                if (Boolean.TRUE.equals(reset)) {
+                    // Reset the cognitiveGameResult and cognitiveGameEnd to false
+                    cognitiveGameResultRef.setValue(false);
+                    cognitiveGameEndRef.setValue(false);
+                    cognitiveGameResetRef.setValue(false); // Optionally reset the cognitiveGameReset too
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w("GameMainActivity", "Failed to read cognitiveGameReset.", databaseError.toException());
+            }
+        });
+
+        databaseRefML_End = FirebaseDatabase.getInstance().getReference("ML_end");
+        databaseRefML2 = FirebaseDatabase.getInstance().getReference("ML_2");
+        databaseRefML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
+
+        codePinResult = FirebaseDatabase.getInstance().getReference("codePin_result");
+        codePin_end = FirebaseDatabase.getInstance().getReference("codePin_end");
+        databaseRefML2.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
+                Boolean currentML2Status = snapshot.getValue(Boolean.class);
+                if (currentML2Status != null && !currentML2Status.equals(previousML2Status)) {
+                    // The value of ML_2 has changed
+                    // Check if it has changed to its opposite boolean value
+                    // Since we already checked for null and difference, it's certain it has changed
+
+                    // Perform your actions based on the change
+                    databaseRefML_End.setValue(false); // Force ML_End to false if ML_2 changes
+                    codePin_end.setValue(false);
+                    databaseRefML_Update_Lock.setValue(true); // Engage the update lock
+                    codePinResult.setValue(false);
+
+
+                    // Update the previousML2Status for future comparisons
+                    previousML2Status = currentML2Status;
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+
+
+
+    }
 
     @Override
     protected void onNewIntent(Intent intent) {

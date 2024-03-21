@@ -62,14 +62,11 @@ public class galleryFragment extends Fragment {
     private TextView textViewProcessedResults2,textViewProcessedResults1;
     private DatabaseReference databaseRefML_End, databaseRefML2, databaseRefML_Update_Lock;
 
-    private DatabaseReference codePinRef;
+    private DatabaseReference codePinResult;
 
     private DatabaseReference codePin_end;
     private StorageReference textFileRef2;
     private Boolean previousML2Status = false;
-    private DeviceState currentState;
-
-    private DeviceStateChecker stateChecker;
 
 
 
@@ -94,7 +91,7 @@ public class galleryFragment extends Fragment {
         databaseRefML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
         textFileRef2 = FirebaseStorage.getInstance().getReference("face_recognition_status.txt");
 
-        codePinRef = FirebaseDatabase.getInstance().getReference("codePin");
+        codePinResult = FirebaseDatabase.getInstance().getReference("codePin_result");
         codePin_end = FirebaseDatabase.getInstance().getReference("codePin_end");
 
 
@@ -198,28 +195,30 @@ public class galleryFragment extends Fragment {
 
     private void setupListeners() {
         // Listen for changes in ML_2
-        databaseRefML2.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean currentML2Status = snapshot.getValue(Boolean.class);
-                if (currentML2Status != null && !currentML2Status.equals(previousML2Status)) {
-                    // The value of ML_2 has changed
-                    // Check if it has changed to its opposite boolean value
-                    // Since we already checked for null and difference, it's certain it has changed
-
-                    // Perform your actions based on the change
-                    databaseRefML_End.setValue(false); // Force ML_End to false if ML_2 changes
-                    codePin_end.setValue(false);
-                    databaseRefML_Update_Lock.setValue(true); // Engage the update lock
-
-                    // Update the previousML2Status for future comparisons
-                    previousML2Status = currentML2Status;
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
+//        databaseRefML2.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                Boolean currentML2Status = snapshot.getValue(Boolean.class);
+//                if (currentML2Status != null && !currentML2Status.equals(previousML2Status)) {
+//                    // The value of ML_2 has changed
+//                    // Check if it has changed to its opposite boolean value
+//                    // Since we already checked for null and difference, it's certain it has changed
+//
+//                    // Perform your actions based on the change
+//                    databaseRefML_End.setValue(false); // Force ML_End to false if ML_2 changes
+//                    codePin_end.setValue(false);
+//                    databaseRefML_Update_Lock.setValue(true); // Engage the update lock
+//                    codePinResult.setValue(false);
+//
+//
+//                    // Update the previousML2Status for future comparisons
+//                    previousML2Status = currentML2Status;
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {}
+//        });
 
         // Listen for changes to ML_Update_Lock
         databaseRefML_Update_Lock.addValueEventListener(new ValueEventListener() {
@@ -283,7 +282,7 @@ public class galleryFragment extends Fragment {
 
                         // Update the TextView on the main thread
                         String finalText = text.toString().trim(); // Trim to remove the last newline character
-                        getActivity().runOnUiThread(() -> textViewProcessedResults1.setText(finalText));
+                        getActivity().runOnUiThread(() -> textViewProcessedResults1.setText(finalText+" Wait for Code"));
                     }).start();
                 })
                 .addOnFailureListener(exception -> {

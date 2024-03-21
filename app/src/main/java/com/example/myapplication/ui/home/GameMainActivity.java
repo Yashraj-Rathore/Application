@@ -39,6 +39,8 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     private DatabaseReference cognitiveGameEndRef;
     private DatabaseReference cognitiveGameResetRef;
 
+    private DatabaseReference ForceAuthorization;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,26 +49,9 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
         // Initialize Firebase database references
         cognitiveGameResultRef = FirebaseDatabase.getInstance().getReference("CognitiveGameResult");
         cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("Cognitive_end");
-        cognitiveGameResetRef = FirebaseDatabase.getInstance().getReference("CognitiveGameReset");
+        ForceAuthorization=FirebaseDatabase.getInstance().getReference("ForceAuthorization");
 
-        // Listen for the cognitiveGameReset variable change
-        cognitiveGameResetRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Boolean reset = dataSnapshot.getValue(Boolean.class);
-                if (Boolean.TRUE.equals(reset)) {
-                    // Reset the cognitiveGameResult and cognitiveGameEnd to false
-                    cognitiveGameResultRef.setValue(false);
-                    cognitiveGameEndRef.setValue(false);
-                    cognitiveGameResetRef.setValue(false); // Optionally reset the cognitiveGameReset too
-                }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w("GameMainActivity", "Failed to read cognitiveGameReset.", databaseError.toException());
-            }
-        });
 
         // Initialize the TextViews
         timerTextView = findViewById(R.id.timerTextView);
@@ -143,6 +128,7 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
                     .setPositiveButton("OK", (dialog, which) -> {
                         cognitiveGameResultRef.setValue(true);
                         cognitiveGameEndRef.setValue(true);
+                        ForceAuthorization.setValue(false);
 
                         //startActivity(new Intent(GameMainActivity.this, MainActivity.class));
                         //finish();
