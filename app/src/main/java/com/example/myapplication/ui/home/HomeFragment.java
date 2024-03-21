@@ -239,7 +239,7 @@ public class HomeFragment extends Fragment {
         if (Boolean.FALSE.equals(timeCurrentStatus)) {
             // Directly set CognitiveGameResult to true if timeCurrent is false
             FirebaseDatabase.getInstance().getReference("CognitiveGameResult").setValue(true);
-            tvCodePinMessage.setText("Navigate to Dashboard for controls");
+            tvCodePinMessage.setText("Code verified! Navigate to Dashboard for servo control");
             startGameButton.setEnabled(false); // Keep startGameButton disabled
             etCodePin.setEnabled(false); // Disable EditText
             validateButton.setEnabled(false); // Disable validate button

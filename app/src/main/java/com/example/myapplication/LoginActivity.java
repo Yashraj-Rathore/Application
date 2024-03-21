@@ -49,15 +49,23 @@ public class LoginActivity extends AppCompatActivity {
             attemptLogin(email, password);
         });
 
+        btnSignUp.setOnClickListener(v -> {
+            // Start SignUpActivity when btnSignUp is clicked
+            Intent signUpIntent = new Intent(LoginActivity.this, SignUpActivity.class);
+            startActivity(signUpIntent);
+        });
+
+
+
     }
+
+
 
     private void attemptLogin(String email, String password) {
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(LoginActivity.this, "Email and password cannot be empty.", Toast.LENGTH_SHORT).show();
             return; // Stop the method execution here
         }
-
-
 
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {

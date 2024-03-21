@@ -46,7 +46,7 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
 
         // Initialize Firebase database references
         cognitiveGameResultRef = FirebaseDatabase.getInstance().getReference("CognitiveGameResult");
-        cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("CognitiveGameEnd");
+        cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("Cognitive_end");
         cognitiveGameResetRef = FirebaseDatabase.getInstance().getReference("CognitiveGameReset");
 
         // Listen for the cognitiveGameReset variable change

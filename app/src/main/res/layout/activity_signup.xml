@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="32dp"
-        android:text="Anti Theft\nSignup"
+        android:text="Anti Theft"
         android:textColor="#FFFFFF"
         android:textSize="24sp" />
 

@@ -1,15 +1,18 @@
 package com.example.myapplication.ui.dashboard;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -27,6 +30,10 @@ import com.example.antitheft.databinding.FragmentDashboardBinding;
 import com.example.myapplication.LoginActivity;
 import com.example.myapplication.ui.gallery.ImageAdapter;
 import com.google.android.gms.tasks.OnFailureListener;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -50,6 +57,8 @@ public class DashboardFragment extends Fragment {
 
     private ArrayList<Uri> imageUrls = new  ArrayList<>();
     private ImageAdapter imageAdapter;
+
+    private FirebaseAuth mAuth;
 
     private DatabaseReference databaseReference2;
 
@@ -80,6 +89,7 @@ public class DashboardFragment extends Fragment {
             NavController navController = Navigation.findNavController(view);
             navController.navigate(R.id.action_dashboardFragment_to_galleryFragment);
         });
+
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
         Button btnForceAuthenticate = view.findViewById(R.id.btnForceAuthenticate);
@@ -102,22 +112,28 @@ public class DashboardFragment extends Fragment {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-// Button click listener to manually toggle ForceAuthorization state
-        btnForceAuthenticate.setOnClickListener(v -> {
-            databaseReference.child("ForceAuthorization").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    Boolean forceAuthorization = snapshot.getValue(Boolean.class);
-                    // Toggle ForceAuthorization and set LockHandler accordingly
-                    boolean newForceAuthorization = forceAuthorization == null || !forceAuthorization;
-                    databaseReference.child("ForceAuthorization").setValue(newForceAuthorization);
-                    databaseReference.child("LockHandler").setValue(newForceAuthorization);
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {}
+        btnForceAuthenticate.setOnClickListener(v -> {
+            // Prompt the user to enter their password
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Password Verification");
+
+            // Set up the input field
+            EditText input = new EditText(getActivity());
+            input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+            builder.setView(input);
+
+            // Set up the buttons
+            builder.setPositiveButton("OK", (dialog, which) -> {
+                String password = input.getText().toString();
+                verifyPasswordAndUpdateAuthorization(password);
             });
+            builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+            builder.show();
         });
+
+
 
         // not sure about this
         databaseReference.child("CognitiveGameResult").addValueEventListener(new ValueEventListener() {
@@ -171,8 +187,6 @@ public class DashboardFragment extends Fragment {
         // Assuming alarmSwitch and servoSwitch are already initialized as shown in your code snippet
 
 
-
-
         // Set a listener for the servo switch to update the database when toggled
         servoSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             // Only update the database if LockHandler allows it
@@ -180,7 +194,7 @@ public class DashboardFragment extends Fragment {
                 if(task.isSuccessful()) {
                     Boolean lockHandler = task.getResult().getValue(Boolean.class);
                     if(Boolean.TRUE.equals(lockHandler)) {
-                        databaseReference.child("Servo").setValue(isChecked);
+                        databaseReference.child("servoControl").setValue(isChecked);
                     }
                 }
             });
@@ -251,7 +265,7 @@ public class DashboardFragment extends Fragment {
 
 // Reflect the actual states of alarm and servo switches from the database
         updateSwitchStateFromDatabase("alarm", alarmSwitch);
-        updateSwitchStateFromDatabase("Servo", servoSwitch);
+        updateSwitchStateFromDatabase("servoControl", servoSwitch);
 
 
 
@@ -273,6 +287,40 @@ public class DashboardFragment extends Fragment {
 
 
     }
+
+    private void verifyPasswordAndUpdateAuthorization(String password) {
+        mAuth = FirebaseAuth.getInstance();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null && password != null && !password.isEmpty()) {
+            AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
+
+            user.reauthenticate(credential)
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            // Password is correct, toggle ForceAuthorization state
+                            databaseReference.child("ForceAuthorization").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                    Boolean forceAuthorization = snapshot.getValue(Boolean.class);
+                                    // Toggle ForceAuthorization and set LockHandler accordingly
+                                    boolean newForceAuthorization = forceAuthorization == null || !forceAuthorization;
+                                    databaseReference.child("ForceAuthorization").setValue(newForceAuthorization);
+                                    databaseReference.child("LockHandler").setValue(newForceAuthorization);
+                                }
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {}
+                            });
+                        } else {
+                            // Password is incorrect
+                            Toast.makeText(getActivity(), "Incorrect password. Try again.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
+
+
 
     private void sendEmergencyMessage(String message) {
         // You might want to use a specific path where you need to store the message
