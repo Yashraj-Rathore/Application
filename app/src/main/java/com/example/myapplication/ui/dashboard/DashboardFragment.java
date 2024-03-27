@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,6 +31,7 @@ import com.example.antitheft.R;
 import com.example.antitheft.databinding.FragmentDashboardBinding;
 import com.example.myapplication.LoginActivity;
 import com.example.myapplication.ui.gallery.ImageAdapter;
+import com.example.myapplication.ui.gps_display.MapsActivity;
 import com.example.myapplication.ui.home.HomeFragment;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.auth.AuthCredential;
@@ -58,6 +61,19 @@ public class DashboardFragment extends Fragment {
     private FirebaseAuth mAuth;
 
     private DatabaseReference databaseReference2;
+    private TextView LockAlert;
+    private ImageView LockAlertImage;
+    private TextView Lock;
+    private ImageView LockImage;
+    private DatabaseReference iffailRef;
+    private DatabaseReference iffailResetRef;
+
+    private DatabaseReference ML_end;
+    private DatabaseReference Authorization;
+    private Button btnResetAlarm;
+
+    boolean currentMLEndState = false;
+    boolean currentAuthorizationState = false;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -68,8 +84,9 @@ public class DashboardFragment extends Fragment {
         View root = binding.getRoot();
         final TextView textView = binding.textDashboard;
         dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
-        return root;
 
+        
+        return root;
 
 
     }
@@ -77,7 +94,26 @@ public class DashboardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+       LockAlert= view.findViewById(R.id.lockStatus2Text);
+        LockAlertImage=view.findViewById(R.id.lockImage2);
+        Lock= view.findViewById(R.id.lockStatusText);
+        LockImage=view.findViewById(R.id.lockImage);
 
+        LockAlert.setVisibility(View.GONE);
+        LockAlertImage.setVisibility(View.GONE);
+        Lock.setVisibility(View.VISIBLE);
+        LockImage.setVisibility(View.VISIBLE);
+
+
+        Button locationButton = view.findViewById(R.id.locationButton);
+        locationButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Start MapsActivity
+                Intent intent = new Intent(getActivity(), MapsActivity.class);
+                startActivity(intent);
+            }
+        });
 
 
         Button displayImagesButton = view.findViewById(R.id.btnDisplayImages);
@@ -200,23 +236,23 @@ public class DashboardFragment extends Fragment {
 
 
 
-// Add a ValueEventListener to listen to changes in Authorization
+ //Add a ValueEventListener to listen to changes in Authorization
         databaseReference.child("Authorization").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot authorizationSnapshot) {
                 Boolean authorization = authorizationSnapshot.getValue(Boolean.class);
 
                 // Add a ValueEventListener to listen to changes in ML_end
-                databaseReference.child("ML_end").addListenerForSingleValueEvent(new ValueEventListener() {
+                databaseReference.child("ML_end").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot mlEndSnapshot) {
                         Boolean mlEnd = mlEndSnapshot.getValue(Boolean.class);
 
                         // Check if both Authorization and ML_end are false
                         boolean isAuthorized = authorization != null && !authorization;
-                        boolean isMLEnd = mlEnd != null && !mlEnd;
+                        boolean isMLEnd = mlEnd != null && mlEnd;
 
-                        // If both are false, set 'iffail' to true
+
                         if (isAuthorized && isMLEnd) {
                             databaseReference.child("iffail").setValue(true);
                             // Assuming you have a Button with the id btnAuthorities in your layout
@@ -258,9 +294,6 @@ public class DashboardFragment extends Fragment {
             });
         });
 
-
-
-
 // Reflect the actual states of alarm and servo switches from the database
         updateSwitchStateFromDatabase("alarm", alarmSwitch);
         updateSwitchStateFromDatabase("servoControl", servoSwitch);
@@ -284,6 +317,139 @@ public class DashboardFragment extends Fragment {
         databaseReference2 = FirebaseDatabase.getInstance().getReference();
 
 
+        databaseReference.child("iffail").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean iffailResult = snapshot.getValue(Boolean.class);
+
+                // If iffailResult is true, set lockimage and text to true
+                if (Boolean.TRUE.equals(iffailResult)) {
+
+                    LockAlert.setVisibility(View.VISIBLE);
+                    LockAlertImage.setVisibility(View.VISIBLE);
+
+                    Lock.setVisibility(View.GONE);
+                    LockImage.setVisibility(View.GONE);
+
+
+                } else {
+
+                    LockAlert.setVisibility(View.GONE);
+                    LockAlertImage.setVisibility(View.GONE);
+
+                    Lock.setVisibility(View.VISIBLE);
+                    LockImage.setVisibility(View.VISIBLE);
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.w("iffailListener", "Failed to read iffailResult.", error.toException());
+            }
+        });
+
+
+
+        btnResetAlarm = view.findViewById(R.id.btnResetAlarm);
+
+        iffailRef = FirebaseDatabase.getInstance().getReference("iffail");
+        iffailResetRef = FirebaseDatabase.getInstance().getReference("iffailReset");
+        ML_end = FirebaseDatabase.getInstance().getReference("ML_end");
+       Authorization = FirebaseDatabase.getInstance().getReference("Authorization");
+
+
+
+        listenForDatabaseChanges();
+
+        iffailRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Boolean iffail = dataSnapshot.getValue(Boolean.class);
+                if (Boolean.TRUE.equals(iffail)) {
+                    btnResetAlarm.setVisibility(View.VISIBLE);
+                } else {
+                    btnResetAlarm.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("iffailListener", "Error listening for iffail changes", databaseError.toException());
+            }
+        });
+
+        checkConditionsAndUpdateUI();
+
+    }
+
+    private void listenForDatabaseChanges() {
+        // Listen for changes to ML_end
+        ML_end.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // Assuming ML_end is a boolean value
+                Boolean value = dataSnapshot.getValue(Boolean.class);
+                if (value != null) {
+                    currentMLEndState = value;
+                    // Call any method that needs to know ML_end's value
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("DatabaseError", "loadPost:onCancelled", databaseError.toException());
+            }
+        });
+
+        // Listen for changes to Authorization
+        Authorization.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // Assuming Authorization is a boolean value
+                Boolean value = dataSnapshot.getValue(Boolean.class);
+                if (value != null) {
+                    currentAuthorizationState = value;
+                    // Call any method that needs to know Authorization's value
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("DatabaseError", "loadPost:onCancelled", databaseError.toException());
+            }
+        });
+    }
+
+
+    private void checkConditionsAndUpdateUI() {
+        btnResetAlarm.setOnClickListener(v -> {
+            // Check conditions before resetting
+            // Fetch current state of Authorization
+
+            if ( currentMLEndState && !currentAuthorizationState) {
+                // Acknowledge the alarm
+                iffailResetRef.setValue(true);
+
+                // Reset iffail
+                iffailRef.setValue(false);
+                Authorization.setValue(true);
+
+                // Optionally reset Authorization and ML_end if needed
+                // mlEndRef.setValue(false);
+
+                // Provide feedback to the user
+                Toast.makeText(getActivity(), "Alarm reset successfully.", Toast.LENGTH_SHORT).show();
+
+                // Automatically reset iffailReset after a delay (e.g., 5 seconds)
+                new Handler().postDelayed(() -> iffailResetRef.setValue(false), 5000);
+            } else {
+                // Conditions not met, provide feedback
+                Toast.makeText(getActivity(), "Cannot reset alarm. Conditions not met.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void verifyPasswordAndUpdateAuthorization(String password) {
@@ -305,7 +471,9 @@ public class DashboardFragment extends Fragment {
                                     boolean newForceAuthorization = forceAuthorization == null || !forceAuthorization;
                                     databaseReference.child("ForceAuthorization").setValue(newForceAuthorization);
                                     //databaseReference.child("LockHandler").setValue(newForceAuthorization);
-                                    Toast.makeText(getActivity(), "Navigate to Home screen for game.", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getActivity(), "Navigating to Home screen for game.", Toast.LENGTH_SHORT).show();
+                                    NavController navController = Navigation.findNavController(getActivity(), R.id.nav_host_fragment_activity_main);
+                                    navController.navigate(R.id.action_dashboardFragment_to_HomeFragment);
 
 
                                 }

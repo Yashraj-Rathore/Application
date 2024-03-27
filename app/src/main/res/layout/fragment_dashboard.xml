@@ -40,6 +40,14 @@
             android:contentDescription="@string/lock_status"
             android:src="@drawable/ic_lock" />
 
+        <ImageView
+            android:id="@+id/lockImage2"
+            android:layout_width="93dp"
+            android:layout_height="93dp"
+            android:layout_centerHorizontal="true"
+            android:contentDescription="@string/lock_status"
+            android:src="@drawable/lock2" />
+
         <!-- Lock status text -->
         <TextView
             android:id="@+id/lockStatusText"
@@ -51,6 +59,19 @@
             android:text="Vehicle secured"
             android:textColor="#00FF00"
             android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/lockStatus2Text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/lockImage2"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            android:text="Vehicle not secure!"
+            android:textColor="#F44336"
+            android:textSize="18sp" />
+
+
     </RelativeLayout>
 
     <!-- Last known location button -->
@@ -64,7 +85,6 @@
         android:text="Last known location"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:background="@drawable/location_button_background"
         android:textColor="#FFF" />
 
     <!-- Camera and Location Icons -->
@@ -102,20 +122,18 @@
     android:layout_marginTop="16dp"
     android:text="Call Authorities"
     android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:textColor="#FFF" />
+    android:paddingRight="16dp" />
 
-
-    <GridView
-        android:id="@+id/gridView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/btnForceAuthenticate"
-        android:numColumns="auto_fit"
-        android:horizontalSpacing="10dp"
-        android:verticalSpacing="10dp"
-        android:padding="10dp"
-        android:stretchMode="columnWidth" />
+    <Button
+        android:id="@+id/btnResetAlarm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/btnAuthorities"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="Reset Alarm "
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp" />
 
 
     <LinearLayout
@@ -145,14 +163,9 @@
             android:text="Alarm"
             android:textColor="#FFF"
             android:textSize="24sp"
-            android:checked="true"/>
-
+            />
 
     </LinearLayout>
-
-
-
-
     <!-- Bottom Button Bar with Bell, Settings, and User Icons -->
     <LinearLayout
         android:id="@+id/bottomButtonBar"

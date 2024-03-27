@@ -31,6 +31,7 @@ public class GameView extends View {
     private CountDownTimer gameTimer;
     private final Handler handler = new Handler();
     private static final int UPDATE_MILLIS = 50;
+    private final float velocityIncrement = 5.0f;
 
     public enum ShapeType {
         CIRCLE, RECTANGLE, OVAL, SQUARE
@@ -156,6 +157,17 @@ public class GameView extends View {
     }
 
     public void setLevel(int level) {
+        this.currentLevel = level;
+
+        if (level == 1) {
+            for (Shape shape : shapes) {
+                // Reset velocities to initial state
+                shape.vx = random.nextInt(20) - 10; // Example initial velocity
+                shape.vy = random.nextInt(20) - 10; // Example initial velocity
+            }
+            // ... reset any other necessary state
+        }
+
         if (level > 3) {
             // Player has passed all levels, trigger success event
             if (gameTimer != null) {
@@ -175,6 +187,13 @@ public class GameView extends View {
             return; // Exit the method to prevent further game progression
         }
 
+        for (Shape shape : shapes) {
+            // Increase the velocity of each shape with each level
+            shape.vx += velocityIncrement;
+            shape.vy += velocityIncrement;
+        }
+
+
         // Existing level setup logic
         switch (level) {
             case 1:
@@ -186,8 +205,11 @@ public class GameView extends View {
             case 3:
                 timeLimit = 4000;
                 break;
+
+
             // No default case needed as we've handled levels > 3 above
         }
+
         startNewRound();
     }
 

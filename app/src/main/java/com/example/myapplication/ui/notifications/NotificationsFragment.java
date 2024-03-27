@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.antitheft.databinding.FragmentNotificationsBinding;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -52,14 +53,22 @@ public class NotificationsFragment extends Fragment {
         Map<String, ?> allEntries = prefs.getAll();
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
             if (entry.getKey().endsWith("_title")) {
-                // Extract the title and message based on the key
                 String title = (String) entry.getValue();
-                String message = prefs.getString(entry.getKey().replace("_title", "_message"), "");
-                notifications.add(new NotificationItem(title, message));
+                String messageKey = entry.getKey().replace("_title", "_message");
+                String message = prefs.getString(messageKey, "");
+                String timestampKey = entry.getKey().replace("_title", "_timestamp");
+                String timestamp = prefs.getString(timestampKey, "");
+
+                notifications.add(new NotificationItem(title, message, timestamp));
             }
         }
+
+        // Sort the notifications list based on timestamp
+        Collections.sort(notifications);
+
         return notifications;
     }
+
 
     private void clearAllNotifications() {
         // Clear SharedPreferences

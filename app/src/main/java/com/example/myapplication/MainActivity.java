@@ -3,11 +3,13 @@ package com.example.myapplication;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -66,6 +68,8 @@ public class MainActivity extends AppCompatActivity {
 
     private DatabaseReference codePinResult;
 
+    private DatabaseReference Authorization;
+
     private Boolean previousML2Status = false;
 
     private DatabaseReference codePin_end;
@@ -85,6 +89,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         NavigationUI.setupWithNavController(binding.navView, navController);
+
+        if (getIntent().hasExtra("navigateTo") && "dashboard".equals(getIntent().getStringExtra("navigateTo"))) {
+            navController.navigate(R.id.navigation_dashboard); // Use the ID of your dashboard destination as defined in your nav_graph.xml
+        }
+
+        if (getIntent().hasExtra("navigateTo") && "Home".equals(getIntent().getStringExtra("navigateTo"))) {
+            navController.navigate(R.id.action_dashboardFragment_to_HomeFragment); // Use the ID of your dashboard destination as defined in your nav_graph.xml
+        }
+
 
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -129,15 +142,34 @@ public class MainActivity extends AppCompatActivity {
         cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("Cognitive_end");
 
         // Listen for the cognitiveGameReset variable change
+
+
         cognitiveGameResetRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Boolean reset = dataSnapshot.getValue(Boolean.class);
+                // Only proceed if reset is requested
                 if (Boolean.TRUE.equals(reset)) {
-                    // Reset the cognitiveGameResult and cognitiveGameEnd to false
-                    cognitiveGameResultRef.setValue(false);
-                    cognitiveGameEndRef.setValue(false);
-                    cognitiveGameResetRef.setValue(false); // Optionally reset the cognitiveGameReset too
+                    cognitiveGameEndRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Boolean gameEnd = dataSnapshot.getValue(Boolean.class);
+                            // Only reset if cognitiveGameEnd is true
+                            if (Boolean.TRUE.equals(gameEnd)) {
+                                cognitiveGameResultRef.setValue(false);
+                                cognitiveGameEndRef.setValue(false);
+
+
+                                // Set cognitiveGameReset to false after 5 seconds
+                                new Handler().postDelayed(() -> cognitiveGameResetRef.setValue(false), 5000);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("GameMainActivity", "Failed to read cognitiveGameEnd.", databaseError.toException());
+                        }
+                    });
                 }
             }
 
@@ -147,9 +179,46 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        cognitiveGameEndRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Boolean reset = dataSnapshot.getValue(Boolean.class);
+                // Only proceed if reset is requested
+                if (Boolean.TRUE.equals(reset)) {
+                    cognitiveGameResetRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Boolean gameReset = dataSnapshot.getValue(Boolean.class);
+                            // Only reset if cognitiveGameEnd is true
+                            if (Boolean.TRUE.equals(gameReset)) {
+                                cognitiveGameResultRef.setValue(false);
+                                cognitiveGameEndRef.setValue(false);
+
+
+                                // Set cognitiveGameReset to false after 5 seconds
+                                new Handler().postDelayed(() -> cognitiveGameResetRef.setValue(false), 5000);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            Log.w("GameMainActivity", "Failed to read cognitiveGameEnd.", databaseError.toException());
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.w("GameMainActivity", "Failed to read cognitiveGameReset.", databaseError.toException());
+            }
+        });
+
+
         databaseRefML_End = FirebaseDatabase.getInstance().getReference("ML_end");
         databaseRefML2 = FirebaseDatabase.getInstance().getReference("ML_2");
         databaseRefML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
+        Authorization=FirebaseDatabase.getInstance().getReference("Authorization");
 
         codePinResult = FirebaseDatabase.getInstance().getReference("codePin_result");
         codePin_end = FirebaseDatabase.getInstance().getReference("codePin_end");
@@ -157,25 +226,32 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
                 Boolean currentML2Status = snapshot.getValue(Boolean.class);
+
+                // Get SharedPreferences
+                SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                // Read previousML2Status from SharedPreferences
+                boolean previousML2Status = prefs.getBoolean("previousML2Status", false); // Default to false if not found
+
                 if (currentML2Status != null && !currentML2Status.equals(previousML2Status)) {
                     // The value of ML_2 has changed
-                    // Check if it has changed to its opposite boolean value
-                    // Since we already checked for null and difference, it's certain it has changed
-
                     // Perform your actions based on the change
                     databaseRefML_End.setValue(false); // Force ML_End to false if ML_2 changes
                     codePin_end.setValue(false);
                     databaseRefML_Update_Lock.setValue(true); // Engage the update lock
                     codePinResult.setValue(false);
+                    Authorization.setValue(false);
 
-
-                    // Update the previousML2Status for future comparisons
-                    previousML2Status = currentML2Status;
+                    // Save the currentML2Status as the new previousML2Status in SharedPreferences
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putBoolean("previousML2Status", currentML2Status);
+                    editor.apply();
                 }
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("DatabaseError", "Failed to read ML_2.", error.toException());
+            }
         });
 
 
@@ -200,13 +276,17 @@ public class MainActivity extends AppCompatActivity {
             if ("home".equals(navigateTo)) {
                 // Navigate to the HomeFragment
                 navController.navigate(R.id.action_global_navigation_home);
-            } else if ("gallery".equals(navigateTo)) {
+            } else if ("notifications".equals(navigateTo)) {
                 // Navigate to the GalleryFragment
-                navController.navigate(R.id.action_dashboardFragment_to_galleryFragment);
+                navController.navigate(R.id.action_NotificationsFragment);
             }
+              else if ("dashboard".equals(navigateTo)) {
+                // Navigate to the GalleryFragment
+                navController.navigate(R.id.action_HomeFragment_to_DashboardFragment);
+            }
+
         });
     }
-
 
 
     private void createNotificationChannel() {

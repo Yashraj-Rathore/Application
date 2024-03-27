@@ -28,11 +28,13 @@ exports.sendNotificationOnImageUpload = functions.storage.object().onFinalize(
       // Check if the file is uploaded to the "images" folder and is a JPEG
       if (object.bucket === targetBucket && object.contentType==="image/jpeg") {
         // Prepare the message for FCM
+        const timestamp = new Date().toISOString();
         const message = {
           data: {
             type: "imageUpload",
             title: "New Image Uploaded",
             message: "New image has been added to the gallery: " + object.name,
+            timestamp: timestamp,
           },
           // Assuming all devices subscribe to this topic
           topic: "allDevices",
@@ -53,11 +55,13 @@ exports.sendNotificationOnNewCodePin = functions.database.ref("/codePin").
       const after = change.after.val();
 
       if (before !== after) {
+        const timestamp = new Date().toISOString();
         const message = {
           data: {
             type: "codePin",
-            title: "New Code Pin Set. Continue to Verify.",
+            title: "New Code Pin Set. Continue to Home to Verify.",
             message: "A new code pin has been set: " + after,
+            timestamp: timestamp,
           },
           topic: "allDevices",
         };
@@ -70,6 +74,47 @@ exports.sendNotificationOnNewCodePin = functions.database.ref("/codePin").
         }
       }
     });
+exports.checkIfFail = functions.database.ref("/iffail").
+    onWrite(async (change, context) => {
+      const after = change.after.val();
+      const timestamp = new Date().toISOString();
+
+      if (after === true) {
+        // Set a timestamp for the ifFail event
+        await change.after.ref.parent.child("ifFailTimestamp").set(timestamp);
+
+        // Wait for 1 second
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Re-check ifFail and the timestamp
+        const ifFailSnapshot = await change.after.ref.once("value");
+        const ifFailTimestampSnapshot = await
+        change.after.ref.parent.child("ifFailTimestamp").once("value");
+
+        if (ifFailSnapshot.val() === true &&
+    ifFailTimestampSnapshot.val()=== timestamp) {
+          // Proceed to send the notification
+          const message = {
+            data: {
+              type: "iffail",
+              title: "Unauthorized Access Detected!",
+              message: "Unauthorized access in vehicle! Check Dashboard!",
+              timestamp: timestamp,
+            },
+            topic: "allDevices",
+          };
+
+          try {
+            const response = await admin.messaging().send(message);
+            console.log("Successfully sent ifFail notification:", response);
+          } catch (error) {
+            console.error("Error sending ifFail notification:", error);
+          }
+        }
+      }
+    });
+
+
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 

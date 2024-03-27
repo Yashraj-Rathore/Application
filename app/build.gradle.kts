@@ -35,9 +35,12 @@ android {
         viewBinding = true
     }
 
+
+
     kotlinOptions {
         jvmTarget = "1.8"
     }
+
 
 
 }
@@ -47,7 +50,7 @@ dependencies {
         // Import the BoM for the Firebase platform
         implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation ("com.google.firebase:firebase-appcheck-playintegrity:17.1.1")
-
+    implementation("com.google.android.gms:play-services-maps:18.2.0")
 
     // Add the dependency for the Cloud Storage library
         // When using the BoM, you don't specify versions in Firebase library dependencies

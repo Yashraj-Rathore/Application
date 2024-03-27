@@ -2,6 +2,7 @@
 plugins {
     id("com.android.application") version "8.1.4" apply false
     id("com.google.gms.google-services") version "4.4.0" apply false
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1" apply false
 
 }
 buildscript {
@@ -13,7 +14,7 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:8.1.4") // Android Gradle Plugin
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0") // Kotlin Gradle Plugin
-        classpath("com.google.gms:google-services:4.4.0") // Google Services plugin
+        classpath("com.google.gms:google-services:4.4.1") // Google Services plugin
         // ... any other classpath dependencies
     }
 }

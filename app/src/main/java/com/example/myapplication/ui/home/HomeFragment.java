@@ -15,12 +15,15 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.example.antitheft.R;
 import com.example.antitheft.databinding.FragmentHomeBinding;
@@ -48,9 +51,15 @@ public class HomeFragment extends Fragment {
     private DatabaseReference codePin_end;
     private DatabaseReference codePin_result;
     private String currentCodePin = "";
+
+    String newCodePinString="";
+
+    String lastKnownCodePin="";
     private Boolean timeCurrentStatus = null;
     private CountDownTimer countDownTimer;
     Boolean forceAuthorization=false;
+
+    private CountDownTimer forceAuthorizationTimer;
 
 
 
@@ -79,9 +88,11 @@ public class HomeFragment extends Fragment {
         startGameButton = view.findViewById(R.id.startGameButton);
 
         // Initially disable the start game button until the code is validated
+        etCodePin.setVisibility(View.GONE);
         startGameButton.setEnabled(false);
         validateButton.setEnabled(false);
         etCodePin.setEnabled(false);
+
 
         timeCurrentRef = FirebaseDatabase.getInstance().getReference("timeCurrent");
         codePinRef = FirebaseDatabase.getInstance().getReference("codePin");
@@ -89,25 +100,6 @@ public class HomeFragment extends Fragment {
         codePin_result = FirebaseDatabase.getInstance().getReference("codePin_result");
         codePin_result = FirebaseDatabase.getInstance().getReference("codePin_result");
         ForceAuthorization=FirebaseDatabase.getInstance().getReference("ForceAuthorization");
-        ForceAuthorization.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                forceAuthorization = dataSnapshot.getValue(Boolean.class);
-                if (Boolean.TRUE.equals(forceAuthorization)) {
-                    startGameButton.setEnabled(true);
-                    tvCodePinMessage.setText("Bypassing Codepin due to Force Authorization");
-
-                }
-                else {
-                    startGameButton.setEnabled(false); // Or any default state you want
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("AuthorizationListener", "Error listening for Authorization", databaseError.toException());
-            }
-        });
-
 
 
 
@@ -119,20 +111,138 @@ public class HomeFragment extends Fragment {
                 Integer newCodePin = dataSnapshot.getValue(Integer.class);
 
                 if (newCodePin != null && isAdded()) { // Ensure the fragment is currently added to its activity
-                    String newCodePinString = String.valueOf(newCodePin);
-                    String lastKnownCodePin = getLastKnownCodePin();
+                    newCodePinString = String.valueOf(newCodePin);
+                    lastKnownCodePin = getLastKnownCodePin();
 
                     if (!newCodePinString.equals(lastKnownCodePin)) {
-                        saveLastKnownCodePin(newCodePinString);
                         // New code pin detected, update UI and logic accordingly
                         etCodePin.setEnabled(true);
                         validateButton.setEnabled(true);
+                        etCodePin.setVisibility(View.VISIBLE);
                         tvCodePinMessage.setText("New code detected. Please enter the code.");
-                        startTimer();
+                        etCodePin.setHint("Enter 6-digit code");
+
+                        // Check if the timer is already running, if not, start a new timer
+                        if (!checkIfCodePinTimerIsActive()) {
+                            startCodePinTimer(30000); // Start a new timer for 30 seconds
+                        } else {
+                            long currentTime = System.currentTimeMillis();
+                            SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+                            long endTime = prefs.getLong("codePinEndTime", 0);
+                            long durationLeft = endTime - currentTime;
+                            startCodePinTimer(durationLeft); // Continue the timer with the remaining duration
+                        }
 
                     } else {
-                        // No new code pin, keep the UI in its current state or make adjustments as needed
-                        // This might involve disabling or enabling UI components based on other conditions
+                        // If the code pin hasn't changed and the timer is not active, reset UI elements
+                        if (!checkIfCodePinTimerIsActive()) {
+                            etCodePin.setVisibility(View.GONE);
+                            etCodePin.setHint("");
+                            tvCodePinMessage.setText("No new code pin detected.");
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("codePinRefListener", "Error listening for codePin changes", databaseError.toException());
+            }
+        });
+
+
+        checkTimeCurrentAndSetup();
+        validateButton.setOnClickListener(v -> validateCode());
+
+        startGameButton.setOnClickListener(v -> {
+            // Start GameMainActivity
+            Intent intent = new Intent(getActivity(), ColorSelection.class);
+            startActivity(intent);
+        });
+
+
+    }
+
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+//        // Clear the EditText and any messages
+//        etCodePin.setEnabled(false);
+//        etCodePin.setText("");
+//        tvCodePinMessage.setText("");
+//        // Reset the validation and game start state as necessary
+//        validateButton.setEnabled(false);
+
+
+
+        ForceAuthorization.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Boolean forceAuthorization = dataSnapshot.getValue(Boolean.class);
+                if (Boolean.TRUE.equals(forceAuthorization)) {
+                    startGameButton.setEnabled(true);
+                    if (checkIfTimerIsActive()) {
+                        long currentTime = System.currentTimeMillis();
+                        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+                        long endTime = prefs.getLong("forceAuthorizationEndTime", 0);
+                        long durationLeft = endTime - currentTime;
+                        startSharedPreferencesTimer(durationLeft); // Continue the timer with the remaining duration
+                    } else {
+                        startSharedPreferencesTimer(30000); // Start a new timer for 30 seconds
+                    }
+                } else {
+                    startGameButton.setEnabled(false);
+                    etCodePin.setHint("");
+                    tvCodePinMessage.setText("Please get Code or ForceAuthorize.");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("AuthorizationListener", "Error listening for Authorization", databaseError.toException());
+            }
+        });
+
+        codePinRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Integer newCodePin = dataSnapshot.getValue(Integer.class);
+
+                if (newCodePin != null && isAdded()) { // Ensure the fragment is currently added to its activity
+                     newCodePinString = String.valueOf(newCodePin);
+                     lastKnownCodePin = getLastKnownCodePin();
+
+                    Log.d("CodePinDebug", "New Code Pin: " + newCodePinString);
+                    Log.d("CodePinDebug", "Last Known Code Pin: " + lastKnownCodePin);
+
+                    if (!newCodePinString.equals(lastKnownCodePin)) {
+                        // New code pin detected, update UI and logic accordingly
+                        etCodePin.setEnabled(true);
+                        validateButton.setEnabled(true);
+                        etCodePin.setVisibility(View.VISIBLE);
+                        tvCodePinMessage.setText("New code detected. Please enter the code.");
+                        etCodePin.setHint("Enter 6-digit code");
+
+                        // Check if the timer is already running, if not, start a new timer
+                        if (!checkIfCodePinTimerIsActive()) {
+                            startCodePinTimer(30000); // Start a new timer for 30 seconds
+                        } else {
+                            long currentTime = System.currentTimeMillis();
+                            SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+                            long endTime = prefs.getLong("codePinEndTime", 0);
+                            long durationLeft = endTime - currentTime;
+                            startCodePinTimer(durationLeft); // Continue the timer with the remaining duration
+                        }
+
+                    } else {
+                        // If the code pin hasn't changed and the timer is not active, reset UI elements
+                        if (!checkIfCodePinTimerIsActive()) {
+                            etCodePin.setVisibility(View.GONE);
+                            etCodePin.setHint("");
+                            tvCodePinMessage.setText("No new code pin detected.");
+                        }
                     }
                 }
             }
@@ -156,72 +266,50 @@ public class HomeFragment extends Fragment {
 
 
 
-    }
-
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        // Clear the EditText and any messages
-        etCodePin.setEnabled(false);
-        etCodePin.setText("");
-        tvCodePinMessage.setText("");
-        // Reset the validation and game start state as necessary
-        validateButton.setEnabled(false);
-
-        ForceAuthorization.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                forceAuthorization = dataSnapshot.getValue(Boolean.class);
-                if (Boolean.TRUE.equals(forceAuthorization)) {
-                    startGameButton.setEnabled(true);
-                    tvCodePinMessage.setText("Bypassing Codepin due to Force Authorization");
-
-                }
-                else {
-                    startGameButton.setEnabled(false); // Or any default state you want
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("AuthorizationListener", "Error listening for Authorization", databaseError.toException());
-            }
-        });
-
-
         // Add other UI reset logic here if needed
     }
 
 
 
+    private void startCodePinTimer(long duration) {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        long endTime = System.currentTimeMillis() + duration;
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putLong("codePinEndTime", endTime);
+        editor.apply();
 
-    private void startTimer() {
-        // Cancel the existing timer if it's already running
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
-
-        // 1 minute countdown timer with 1 second tick intervals
-        countDownTimer = new CountDownTimer(60000, 1000) {
-
+        countDownTimer = new CountDownTimer(duration, 1000) {
             public void onTick(long millisUntilFinished) {
-                // Update the UI with the remaining time in a readable format
                 int secondsLeft = (int) (millisUntilFinished / 1000);
-                tvCodePinMessage.setText(String.format(Locale.getDefault(), "Stay on this screen and enter the code within %d seconds", secondsLeft));
+                if (isAdded()) {
+                    tvCodePinMessage.setText(String.format(Locale.getDefault(), "Enter the code within %d seconds", secondsLeft));
+                }
             }
 
             public void onFinish() {
-                // Disable EditText, validate button, and display message when timer finishes
-                etCodePin.setEnabled(false);
-                validateButton.setEnabled(false);
-                tvCodePinMessage.setText("Time's up! Please wait for a new code.");
+                if (isAdded()) {
+                    etCodePin.setEnabled(false);
+                    validateButton.setEnabled(false);
+                    etCodePin.setVisibility(View.GONE);
+                    tvCodePinMessage.setText("Time's up! Please wait for a new code.");
+                    SharedPreferences.Editor editor = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE).edit();
+                    saveLastKnownCodePin(newCodePinString);
+                    editor.remove("codePinEndTime").apply(); // Clear timer end time
 
-                // Optionally reset the current code pin to prevent validation attempts after expiration
-                currentCodePin = "";
+                }
             }
         }.start();
     }
 
+
+    private boolean checkIfCodePinTimerIsActive() {
+        SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        long endTime = prefs.getLong("codePinEndTime", 0);
+        return System.currentTimeMillis() < endTime;
+    }
 
 
     private String getLastKnownCodePin() {
@@ -233,6 +321,56 @@ public class HomeFragment extends Fragment {
         SharedPreferences.Editor editor = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE).edit();
         editor.putString("lastKnownCodePin", codePin);
         editor.apply();
+    }
+
+    private void startSharedPreferencesTimer(long duration) {
+
+        if (isAdded()) { // Check if the fragment is currently added to its activity
+            long endTime = System.currentTimeMillis() + duration;
+            SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putLong("forceAuthorizationEndTime", endTime);
+            editor.apply();
+        }
+
+
+        // Start a countdown based on the remaining time until "endTime"
+        if (forceAuthorizationTimer != null) {
+            forceAuthorizationTimer.cancel();
+        }
+        forceAuthorizationTimer = new CountDownTimer(duration, 1000) {
+            public void onTick(long millisUntilFinished) {
+                // Update the message with the remaining time
+                int secondsLeft = (int) (millisUntilFinished / 1000);
+
+                if (isAdded()) { // Check if fragment is currently added to its activity
+                    tvCodePinMessage.setText(String.format(Locale.getDefault(), "Bypassing Codepin due to Force Authorization. Click Start within %d seconds", secondsLeft));
+                }
+            }
+            public void onFinish() {
+                if (isAdded()) { // Check if fragment is currently added to its activity
+                    startGameButton.setEnabled(false);
+                    ForceAuthorization.setValue(false);
+                    tvCodePinMessage.setText("Force Authorization period has expired. Please get Code or ForceAuthorize again.");
+                    etCodePin.setHint("");
+                    // Safely access getActivity() as we've confirmed the fragment is added
+                    SharedPreferences.Editor editor = getActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE).edit();
+                    editor.remove("forceAuthorizationEndTime");
+                    editor.apply();
+                }
+            }
+        }.start();
+    }
+
+    private boolean checkIfTimerIsActive() {
+        if (isAdded()) { // Check if the fragment is currently added to its activity
+            SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+            long endTime = prefs.getLong("forceAuthorizationEndTime", 0);
+            return System.currentTimeMillis() < endTime;
+        } else {
+            // Return a default value (e.g., false) if the fragment is not attached
+            return false;
+        }
     }
 
 
@@ -261,12 +399,12 @@ public class HomeFragment extends Fragment {
 
     private void validateCode() {
         String userEnteredCode = etCodePin.getText().toString();
-        if (isAdded() && userEnteredCode.equals(getLastKnownCodePin())) {
+        if (isAdded() && userEnteredCode.equals(newCodePinString)) {
             // Correct code entered
             tvCodePinMessage.setText("Code verified! Stay on this screen and Start Game");
             codePin_end.setValue(true);
             codePin_result.setValue(true);
-
+            saveLastKnownCodePin(newCodePinString);
 
             // Cancel the timer since the code has been verified
             if (countDownTimer != null) {
@@ -279,17 +417,22 @@ public class HomeFragment extends Fragment {
             //startGameButton.setEnabled(false);
         }
     }
-
-
-
+    
     private void processAfterCodeVerification() {
         if (Boolean.FALSE.equals(timeCurrentStatus)) {
             // Directly set CognitiveGameResult to true if timeCurrent is false
             FirebaseDatabase.getInstance().getReference("CognitiveGameResult").setValue(true);
-            tvCodePinMessage.setText("Code verified! Navigate to Dashboard for servo control");
+            tvCodePinMessage.setText("Code verified!");
             //startGameButton.setEnabled(false); // Keep startGameButton disabled
             etCodePin.setEnabled(false); // Disable EditText
             validateButton.setEnabled(false); // Disable validate button
+
+            Toast.makeText(getActivity(), "Code verified! Navigating Dashboard for servo control!", Toast.LENGTH_SHORT).show();
+            NavController navController = Navigation.findNavController(getActivity(), R.id.nav_host_fragment_activity_main);
+            navController.navigate(R.id.action_HomeFragment_to_DashboardFragment);
+
+
+
         } else if (Boolean.TRUE.equals(timeCurrentStatus)) {
             // Enable the startGameButton only if timeCurrent is true
             startGameButton.setEnabled(true);

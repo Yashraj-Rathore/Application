@@ -40,6 +40,8 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     private DatabaseReference cognitiveGameResetRef;
 
     private DatabaseReference ForceAuthorization;
+    private int restartCounter = 0; // Counter for tracking restarts
+    private final int maxRestarts = 2; // Maximum number of allowed restarts
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,30 +91,50 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     @Override
     public void onGameOver() {
         runOnUiThread(() -> {
-            // Show a game over message or dialog
-            new AlertDialog.Builder(GameMainActivity.this)
-                    .setTitle(R.string.game_over)
-                    .setMessage(getString(R.string.game_over_message) + " You've reached level " + currentLevel + ". Try again!")
-                    .setPositiveButton(R.string.restart, (dialog, which) -> restartGame()) // Restart the game
-                    .setNegativeButton(R.string.exit, (dialog, which) -> {
-                        cognitiveGameEndRef.setValue(true);
+            // If the restartCounter is less than maxRestarts, allow the game to restart
+            if (restartCounter < maxRestarts) {
+                new AlertDialog.Builder(GameMainActivity.this)
+                        .setTitle(R.string.game_over)
+                        .setMessage(getString(R.string.game_over_message) + " You've reached level " + currentLevel + ". Try again!")
+                        .setPositiveButton(R.string.restart, (dialog, which) -> {
+                            restartCounter++; // Increment the restart counter
+                            restartGame(); // Restart the game
+                        })
+                        .setNegativeButton(R.string.exit, (dialog, which) -> {
 
-//                        Intent intent = new Intent(this, com.example.myapplication.MainActivity.class); // Assuming MainActivity hosts HomeFragment
-//                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-//                        startActivity(intent);
-//
-                        //startActivity(new Intent(GameMainActivity.this, MainActivity.class));
-                        //finish();
+                            cognitiveGameResultRef.setValue(false);
+                            cognitiveGameEndRef.setValue(true);
 
-                        Intent intent = new Intent(this, MainActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                        startActivity(intent);
-                        finish();
+                            Toast.makeText(this, "Navigating back to Home Screen!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(this, MainActivity.class);
+                            intent.putExtra("navigateTo", "Home"); // "dashboard" is an example key
+                            startActivity(intent);
+                            finish();
 
+                        }) // Exit the game
+                        .show();
+            } else {
+                // If maxRestarts has been reached, exit the game automatically
 
-                    }) // Exit the game
-                    .show();
+                new AlertDialog.Builder(GameMainActivity.this)
+                        .setTitle(R.string.game_over)
+                        .setMessage("Maximum restarts reached. Exiting game.")
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            cognitiveGameResultRef.setValue(false);
+                            cognitiveGameEndRef.setValue(true);
+
+                            Toast.makeText(this, "Navigating back to Home Screen!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(this, MainActivity.class);
+                            intent.putExtra("navigateTo", "Home"); // "dashboard" is an example key
+                            startActivity(intent);
+                            finish();
+
+                        })
+                        .show();
+
+            }
         });
+
     }
 
     @Override
@@ -134,10 +156,19 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
                         //finish();
 
 
+//                        Intent intent = new Intent(this, MainActivity.class);
+//                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                        startActivity(intent);
+//                        finish();
+
+
+                        Toast.makeText(this, "Navigating to Dashboard for servo Control.", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(this, MainActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        intent.putExtra("navigateTo", "dashboard"); // "dashboard" is an example key
                         startActivity(intent);
                         finish();
+
+
 
                     })
                     .show();
@@ -156,7 +187,11 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
         cognitiveGameEndRef.setValue(false);
 
         currentLevel = 1; // Reset to level 1
+        levelTextView.setText(getString(R.string.level_default, currentLevel));
+
+
         startLevel(currentLevel); // Start the first level again
+
     }
 
     @Override

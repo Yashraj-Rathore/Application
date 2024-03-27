@@ -72,7 +72,9 @@ public class galleryFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+
         galleryViewModel galleryViewModel = new ViewModelProvider(this).get(galleryViewModel.class);
+
         binding = ActivityGalleryBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -282,7 +284,7 @@ public class galleryFragment extends Fragment {
 
                         // Update the TextView on the main thread
                         String finalText = text.toString().trim(); // Trim to remove the last newline character
-                        getActivity().runOnUiThread(() -> textViewProcessedResults1.setText(finalText+" Wait for Code"));
+                        getActivity().runOnUiThread(() -> textViewProcessedResults1.setText(finalText));
                     }).start();
                 })
                 .addOnFailureListener(exception -> {
@@ -318,7 +320,7 @@ public class galleryFragment extends Fragment {
             String status = br.readLine();
             getActivity().runOnUiThread(() -> {
                 if ("True".equals(status)) {
-                    textViewProcessedResults2.setText("Verified!");
+                    textViewProcessedResults2.setText("Verified! Wait for Code!");
                     updateDatabaseAuthorization(true);
                     // Set ML_End true directly here based on file content
                     databaseRefML_End.setValue(true);
