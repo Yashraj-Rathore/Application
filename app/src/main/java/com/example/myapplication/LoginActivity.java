@@ -26,6 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin, btnSignUp;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
+    private DatabaseReference enrollTrigger;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
@@ -33,6 +34,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        enrollTrigger = FirebaseDatabase.getInstance().getReference("enrollTrigger");
         mAuth = FirebaseAuth.getInstance();
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
@@ -52,6 +54,7 @@ public class LoginActivity extends AppCompatActivity {
         btnSignUp.setOnClickListener(v -> {
             // Start SignUpActivity when btnSignUp is clicked
             Intent signUpIntent = new Intent(LoginActivity.this, SignUpActivity.class);
+            enrollTrigger.setValue(true);
             startActivity(signUpIntent);
         });
 

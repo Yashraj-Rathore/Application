@@ -10,10 +10,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
+        android:layout_below="@id/btnClearGallery"
         android:text=""
-        android:padding="10dp"
+        android:padding="5dp"
         android:textColor="#FFF"
-        android:textSize="20sp"/>
+        android:textSize="17sp"/>
 
     <TextView
         android:id="@+id/textViewProcessedResults2"
@@ -22,10 +23,21 @@
         android:layout_below="@id/textViewProcessedResults"
         android:layout_marginTop="0dp"
         android:gravity="center_horizontal"
-        android:padding="10dp"
+        android:padding="5dp"
         android:text=""
         android:textColor="#FFF"
-        android:textSize="20sp" />
+        android:textSize="17sp" />
+
+    <Button
+        android:id="@+id/btnClearGallery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear Gallery"
+        android:padding="5dp"
+        android:textSize="14sp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_centerHorizontal="true"/>
 
 
     <!-- The GridView is positioned below the buttonAuthenticate by using android:layout_below -->
@@ -37,7 +49,9 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="0dp"
         android:numColumns="2"
-        android:textColor="#FFF" />
+        android:textColor="#FFF"
+        android:verticalSpacing="4dp"
+        android:horizontalSpacing="4dp" />
 
     <!-- TextView for gallery, ensure to position or update this view as necessary -->
     <TextView

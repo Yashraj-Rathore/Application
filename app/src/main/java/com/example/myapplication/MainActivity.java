@@ -284,6 +284,10 @@ public class MainActivity extends AppCompatActivity {
                 // Navigate to the GalleryFragment
                 navController.navigate(R.id.action_HomeFragment_to_DashboardFragment);
             }
+            else if ("gallery".equals(navigateTo)) {
+                // Navigate to the GalleryFragment
+                navController.navigate(R.id.action_global_navigation_gallery);
+            }
 
         });
     }

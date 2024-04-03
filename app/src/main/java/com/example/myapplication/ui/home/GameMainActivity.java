@@ -40,6 +40,7 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     private DatabaseReference cognitiveGameResetRef;
 
     private DatabaseReference ForceAuthorization;
+    private DatabaseReference Authorization;
     private int restartCounter = 0; // Counter for tracking restarts
     private final int maxRestarts = 2; // Maximum number of allowed restarts
 
@@ -52,6 +53,7 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
         cognitiveGameResultRef = FirebaseDatabase.getInstance().getReference("CognitiveGameResult");
         cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("Cognitive_end");
         ForceAuthorization=FirebaseDatabase.getInstance().getReference("ForceAuthorization");
+        Authorization=FirebaseDatabase.getInstance().getReference("Authorization");
 
 
 
@@ -151,6 +153,7 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
                         cognitiveGameResultRef.setValue(true);
                         cognitiveGameEndRef.setValue(true);
                         ForceAuthorization.setValue(false);
+                        Authorization.setValue(true);
 
                         //startActivity(new Intent(GameMainActivity.this, MainActivity.class));
                         //finish();

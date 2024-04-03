@@ -23,7 +23,7 @@
         android:layout_below="@+id/tvLoginHeader"
         android:layout_marginTop="44dp"
         android:background="@drawable/edittext_background"
-        android:hint="Username"
+        android:hint="Firstname"
         android:textColor="@color/black"
         android:textColorHint="#070707" />
 

@@ -211,8 +211,8 @@ public class HomeFragment extends Fragment {
                 Integer newCodePin = dataSnapshot.getValue(Integer.class);
 
                 if (newCodePin != null && isAdded()) { // Ensure the fragment is currently added to its activity
-                     newCodePinString = String.valueOf(newCodePin);
-                     lastKnownCodePin = getLastKnownCodePin();
+                    newCodePinString = String.valueOf(newCodePin);
+                    lastKnownCodePin = getLastKnownCodePin();
 
                     Log.d("CodePinDebug", "New Code Pin: " + newCodePinString);
                     Log.d("CodePinDebug", "Last Known Code Pin: " + lastKnownCodePin);
@@ -417,7 +417,7 @@ public class HomeFragment extends Fragment {
             //startGameButton.setEnabled(false);
         }
     }
-    
+
     private void processAfterCodeVerification() {
         if (Boolean.FALSE.equals(timeCurrentStatus)) {
             // Directly set CognitiveGameResult to true if timeCurrent is false

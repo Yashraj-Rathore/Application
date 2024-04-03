@@ -45,6 +45,7 @@
 
     <action android:id="@+id/action_global_navigation_gallery"
         app:destination="@id/navigation_gallery"
+        app:popUpTo="@id/navigation_dashboard"
         app:popUpToInclusive="true"/>
 
     <action android:id="@+id/action_global_navigation_home"

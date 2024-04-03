@@ -49,6 +49,7 @@ exports.sendNotificationOnImageUpload = functions.storage.object().onFinalize(
         }
       }
     });
+
 exports.sendNotificationOnNewCodePin = functions.database.ref("/codePin").
     onWrite(async (change, context) => {
       const before = change.before.val();

@@ -4,11 +4,13 @@ package com.example.myapplication.ui.gallery;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,6 +22,7 @@ import com.example.antitheft.databinding.ActivityGalleryBinding;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.widget.GridView;
+import android.widget.Toast;
 
 
 import com.example.myapplication.DeviceState;
@@ -62,6 +65,8 @@ public class galleryFragment extends Fragment {
     private TextView textViewProcessedResults2,textViewProcessedResults1;
     private DatabaseReference databaseRefML_End, databaseRefML2, databaseRefML_Update_Lock;
 
+    private DatabaseReference galleryClearRef;
+
     private DatabaseReference codePinResult;
 
     private DatabaseReference codePin_end;
@@ -88,6 +93,7 @@ public class galleryFragment extends Fragment {
         adapter = new ImageAdapter(getActivity(), imageItems); // Initialize the adapter with ImageItem list
         gridView.setAdapter(adapter);
 
+        galleryClearRef = FirebaseDatabase.getInstance().getReference("galleryClear");
         databaseRefML_End = FirebaseDatabase.getInstance().getReference("ML_end");
         databaseRefML2 = FirebaseDatabase.getInstance().getReference("ML_2");
         databaseRefML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
@@ -107,7 +113,6 @@ public class galleryFragment extends Fragment {
 
 
     }
-
 
 
     private void retrieveAndDisplayImages() {
@@ -186,6 +191,18 @@ public class galleryFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+
+        Button btnClearGallery = view.findViewById(R.id.btnClearGallery);
+        btnClearGallery.setOnClickListener(v -> {
+            // Set galleryClear to true when the button is clicked
+            galleryClearRef.setValue(true);
+            Toast.makeText(getActivity(), "Clearing Images", Toast.LENGTH_SHORT).show();
+            new Handler().postDelayed(() -> galleryClearRef.setValue(false), 1000);
+        });
+
+
+
 
         textViewProcessedResults2 = view.findViewById(R.id.textViewProcessedResults2);
        textViewProcessedResults1 = getView().findViewById(R.id.textViewProcessedResults);

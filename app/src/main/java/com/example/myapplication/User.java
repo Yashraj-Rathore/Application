@@ -1,7 +1,7 @@
 package com.example.myapplication;
 
 public class User {
-    private String username;
+    private String Firstname;
     private String email;
 
 
@@ -11,22 +11,22 @@ public class User {
 
     // Constructor with parameters
     public User(String username, String email) {
-        this.username = username;
+        this.Firstname = username;
         this.email = email;
     }
 
     public User(String username) {
-        this.username = username;
+        this.Firstname = username;
 
     }
 
     // Getters and Setters
     public String getUsername() {
-        return username;
+        return Firstname;
     }
 
     public void setUsername(String username) {
-        this.username = username;
+        this.Firstname = username;
     }
 
     public String getEmail() {
