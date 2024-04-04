@@ -37,7 +37,7 @@ exports.sendNotificationOnNewCodePin = functions.database
       const before = change.before.val();
       const after = change.after.val();
 
-      if (before !== after) {
+      if (before !== after && after !== 0) {
         const timestamp = new Date().toISOString();
         const message = {
           data: {

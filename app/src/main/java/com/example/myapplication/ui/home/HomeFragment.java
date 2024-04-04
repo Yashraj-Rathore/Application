@@ -53,6 +53,7 @@ public class HomeFragment extends Fragment {
     private DatabaseReference codePin_result;
     private String currentCodePin = "";
 
+    private boolean isCodePinEndActive = false;
     String newCodePinString="";
 
     String lastKnownCodePin="";
@@ -61,9 +62,11 @@ public class HomeFragment extends Fragment {
     Boolean forceAuthorization=false;
 
     private CountDownTimer forceAuthorizationTimer;
+    private boolean isForceAuthorizationActive = false;
 
-
-
+    private boolean skipNextCodePinLogic = false;
+    // Variable to track the last CodePin value processed
+    private String lastProcessedCodePin = "";
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -103,64 +106,64 @@ public class HomeFragment extends Fragment {
         ForceAuthorization=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ForceAuthorization");
         codePinTrial=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePinTrial");
 
+        listenToCodePinEnd();
 
-
-        // Continuously listen for new codePin
-        codePinRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Integer newCodePin = dataSnapshot.getValue(Integer.class);
-
-                if (newCodePin != null && isAdded()) { // Ensure the fragment is currently added to its activity
-                    codePinTrial.setValue(false);
-                    newCodePinString = String.valueOf(newCodePin);
-                    lastKnownCodePin = getLastKnownCodePin();
-
-                    if (!newCodePinString.equals(lastKnownCodePin)) {
-                        // New code pin detected, update UI and logic accordingly
-                        etCodePin.setEnabled(true);
-                        validateButton.setEnabled(true);
-                        etCodePin.setVisibility(View.VISIBLE);
-                        tvCodePinMessage.setText("New code detected. Please enter the code.");
-                        etCodePin.setHint("Enter 6-digit code");
-
-                        // Check if the timer is already running, if not, start a new timer
-                        if (!checkIfCodePinTimerIsActive()) {
-                            startCodePinTimer(30000); // Start a new timer for 30 seconds
-                        } else {
-                            long currentTime = System.currentTimeMillis();
-                            SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
-                            long endTime = prefs.getLong("codePinEndTime", 0);
-                            long durationLeft = endTime - currentTime;
-                            startCodePinTimer(durationLeft); // Continue the timer with the remaining duration
-                        }
-
-                    } else {
-                        // If the code pin hasn't changed and the timer is not active, reset UI elements
-                        if (!checkIfCodePinTimerIsActive()) {
-                            etCodePin.setVisibility(View.GONE);
-                            etCodePin.setHint("");
-                            tvCodePinMessage.setText("No new code pin detected.");
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Log.e("codePinRefListener", "Error listening for codePin changes", databaseError.toException());
-            }
-        });
-
-
-        checkTimeCurrentAndSetup();
-        validateButton.setOnClickListener(v -> validateCode());
-
-        startGameButton.setOnClickListener(v -> {
-            // Start GameMainActivity
-            Intent intent = new Intent(getActivity(), ColorSelection.class);
-            startActivity(intent);
-        });
+//        // Continuously listen for new codePin
+//        codePinRef.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                Integer newCodePin = dataSnapshot.getValue(Integer.class);
+//
+//                if (newCodePin != null && isAdded()) { // Ensure the fragment is currently added to its activity
+//                    codePinTrial.setValue(false);
+//                    newCodePinString = String.valueOf(newCodePin);
+//                    lastKnownCodePin = getLastKnownCodePin();
+//
+//                    if (!newCodePinString.equals(lastKnownCodePin)) {
+//                        // New code pin detected, update UI and logic accordingly
+//                        etCodePin.setEnabled(true);
+//                        validateButton.setEnabled(true);
+//                        etCodePin.setVisibility(View.VISIBLE);
+//                        tvCodePinMessage.setText("New code detected. Please enter the code.");
+//                        etCodePin.setHint("Enter 6-digit code");
+//
+//                        // Check if the timer is already running, if not, start a new timer
+//                        if (!checkIfCodePinTimerIsActive()) {
+//                            startCodePinTimer(30000); // Start a new timer for 30 seconds
+//                        } else {
+//                            long currentTime = System.currentTimeMillis();
+//                            SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+//                            long endTime = prefs.getLong("codePinEndTime", 0);
+//                            long durationLeft = endTime - currentTime;
+//                            startCodePinTimer(durationLeft); // Continue the timer with the remaining duration
+//                        }
+//
+//                    } else {
+//                        // If the code pin hasn't changed and the timer is not active, reset UI elements
+//                        if (!checkIfCodePinTimerIsActive()) {
+//                            etCodePin.setVisibility(View.GONE);
+//                            etCodePin.setHint("");
+//                            tvCodePinMessage.setText("No new code pin detected.");
+//                        }
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//                Log.e("codePinRefListener", "Error listening for codePin changes", databaseError.toException());
+//            }
+//        });
+//
+//
+//        checkTimeCurrentAndSetup();
+//        validateButton.setOnClickListener(v -> validateCode());
+//
+//        startGameButton.setOnClickListener(v -> {
+//            // Start GameMainActivity
+//            Intent intent = new Intent(getActivity(), ColorSelection.class);
+//            startActivity(intent);
+//        });
 
 
     }
@@ -179,12 +182,18 @@ public class HomeFragment extends Fragment {
 
 
 
+        // Declare a global variable to keep track of ForceAuthorization status
+
+
         ForceAuthorization.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Boolean forceAuthorization = dataSnapshot.getValue(Boolean.class);
-                if (Boolean.TRUE.equals(forceAuthorization)) {
+                isForceAuthorizationActive = Boolean.TRUE.equals(forceAuthorization); // Update the global variable
+                if (isForceAuthorizationActive) {
+                    // Prioritize ForceAuthorization logic
                     startGameButton.setEnabled(true);
+                    skipNextCodePinLogic = true;
                     if (checkIfTimerIsActive()) {
                         long currentTime = System.currentTimeMillis();
                         SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
@@ -210,20 +219,45 @@ public class HomeFragment extends Fragment {
         codePinRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (isForceAuthorizationActive) {
+                    // If ForceAuthorization is active, skip the CodePin logic
+                    return;
+                }
+
                 Integer newCodePin = dataSnapshot.getValue(Integer.class);
 
-                if (newCodePin != null && isAdded()) { // Ensure the fragment is currently added to its activity
+                if (newCodePin== 0 && isAdded()) {
+
+                    saveLastKnownCodePin(String.valueOf(newCodePin));
+
+                    lastKnownCodePin = getLastKnownCodePin();
+                    newCodePinString = String.valueOf(newCodePin);
+
+                    Log.d("CodePinDebug", "LastKnownCodePin: " + lastKnownCodePin + ", NewCodePin: " + newCodePinString);
+                }
+
+
+                if (newCodePin != null &&  isAdded() && newCodePin != 0 ) { // Ensure the fragment is currently added to its activity
                     codePinTrial.setValue(false);
                     newCodePinString = String.valueOf(newCodePin);
                     lastKnownCodePin = getLastKnownCodePin();
-
-                    if (!newCodePinString.equals(lastKnownCodePin)) {
+                    Log.d("CodePinDebug", "LastKnownCodePin: " + lastKnownCodePin + ", NewCodePin: " + newCodePinString);
+                    if (!newCodePinString.equals(lastKnownCodePin) && isAdded()) {
                         // New code pin detected, update UI and logic accordingly
                         etCodePin.setEnabled(true);
                         validateButton.setEnabled(true);
                         etCodePin.setVisibility(View.VISIBLE);
                         tvCodePinMessage.setText("New code detected. Please enter the code.");
+
                         etCodePin.setHint("Enter 6-digit code");
+
+                            if (skipNextCodePinLogic) {
+                                // Skip this round of CodePin logic due to recent ForceAuthorization
+                                skipNextCodePinLogic = false; // Reset flag to not skip future CodePin changes
+                                                               // Update last processed CodePin
+                                return; // Skip further processing for this CodePin change
+                            }
+
 
                         // Check if the timer is already running, if not, start a new timer
                         if (!checkIfCodePinTimerIsActive()) {
@@ -235,7 +269,6 @@ public class HomeFragment extends Fragment {
                             long durationLeft = endTime - currentTime;
                             startCodePinTimer(durationLeft); // Continue the timer with the remaining duration
                         }
-
                     } else {
                         // If the code pin hasn't changed and the timer is not active, reset UI elements
                         if (!checkIfCodePinTimerIsActive()) {
@@ -270,6 +303,25 @@ public class HomeFragment extends Fragment {
     }
 
 
+    private void listenToCodePinEnd() {
+
+        codePin_end.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Boolean state = dataSnapshot.getValue(Boolean.class);
+                if (state != null) {
+                    isCodePinEndActive = state;
+                    // Optionally, invoke any methods that depend on this state change
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("listenToCodePinEnd", "loadPost:onCancelled", databaseError.toException());
+            }
+        });
+    }
 
     private void startCodePinTimer(long duration) {
         SharedPreferences prefs = requireActivity().getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
@@ -290,6 +342,11 @@ public class HomeFragment extends Fragment {
             }
 
             public void onFinish() {
+                //codePin_end.setValue(true);
+                codePinRef.setValue(0);
+                codePinTrial.setValue(false);
+                Log.d("CodePinDebug", "isCodePinEndActive: " + isCodePinEndActive);
+
                 if (isAdded()) {
                     etCodePin.setEnabled(false);
                     validateButton.setEnabled(false);
@@ -348,9 +405,11 @@ public class HomeFragment extends Fragment {
                 }
             }
             public void onFinish() {
+                ForceAuthorization.setValue(false);
+                codePinRef.setValue(0);
+                skipNextCodePinLogic = false;
                 if (isAdded()) { // Check if fragment is currently added to its activity
                     startGameButton.setEnabled(false);
-                    ForceAuthorization.setValue(false);
                     tvCodePinMessage.setText("Force Authorization period has expired. Please get Code or ForceAuthorize again.");
                     etCodePin.setHint("");
                     // Safely access getActivity() as we've confirmed the fragment is added

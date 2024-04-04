@@ -178,17 +178,6 @@ public class DashboardFragment extends Fragment {
                 // If CognitiveGameResult is true, set LockHandler to true
                 if (Boolean.TRUE.equals(cognitiveGameResult)) {
                     databaseReference.child("LockHandler").setValue(true);
-                } else {
-                    // If CognitiveGameResult is not true, check ForceAuthorization before setting LockHandler
-                    databaseReference.child("ForceAuthorization").get().addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            Boolean forceAuthorization = task.getResult().getValue(Boolean.class);
-                            // If either CognitiveGameResult or ForceAuthorization is true, set LockHandler to true
-                            databaseReference.child("LockHandler").setValue(Boolean.TRUE.equals(forceAuthorization));
-                        } else {
-                            Log.e("DatabaseError", "Error getting ForceAuthorization value", task.getException());
-                        }
-                    });
                 }
             }
 

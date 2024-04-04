@@ -39,6 +39,8 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     private DatabaseReference cognitiveGameEndRef;
     private DatabaseReference cognitiveGameResetRef;
     private DatabaseReference Authorization;
+
+
     private DatabaseReference codePinTrial;
     private DatabaseReference ForceAuthorization;
     private int restartCounter = 0; // Counter for tracking restarts
@@ -89,8 +91,6 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
 
 
 
-
-
     @Override
     public void onGameOver() {
         runOnUiThread(() -> {
@@ -108,7 +108,7 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
                             cognitiveGameResultRef.setValue(false);
                             cognitiveGameEndRef.setValue(true);
 
-                            Toast.makeText(this, "Navigating back to Home Screen!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "Wait for code from MCU!", Toast.LENGTH_LONG).show();
                             Intent intent = new Intent(this, MainActivity.class);
                             intent.putExtra("navigateTo", "Home"); // "dashboard" is an example key
                             startActivity(intent);

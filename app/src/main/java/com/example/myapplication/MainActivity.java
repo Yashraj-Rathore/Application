@@ -68,9 +68,12 @@ public class MainActivity extends AppCompatActivity {
 
     private DatabaseReference codePinResult;
 
+    private DatabaseReference codePin;
     private DatabaseReference Authorization;
 
     private Boolean previousML2Status = false;
+
+    private DatabaseReference CodePin;
 
     private DatabaseReference codePin_end;
     @Override
@@ -111,6 +114,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        databaseReference.child("codePin").setValue(0).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Log.d("MainActivity", "ForceAuthorization set to false successfully.");
+            } else {
+                Log.e("MainActivity", "Failed to set ForceAuthorization.", task.getException());
+            }
+        });
+
+
+
         FirebaseMessaging.getInstance().subscribeToTopic("allDevices")
                 .addOnCompleteListener(task -> {
                     if (!task.isSuccessful()) {
@@ -140,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
         cognitiveGameResetRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("CognitiveGameReset");
         cognitiveGameResultRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("CognitiveGameResult");
         cognitiveGameEndRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("Cognitive_end");
+        CodePin=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin");
 
         // Listen for the cognitiveGameReset variable change
 
@@ -221,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
 
         codePinResult = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_result");
         codePin_end = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_end");
+        codePin = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin");
 
         databaseRefML2.addValueEventListener(new ValueEventListener() {
             @Override
@@ -240,10 +255,11 @@ public class MainActivity extends AppCompatActivity {
                     databaseRefML_Update_Lock.setValue(true); // Engage the update lock
                     codePinResult.setValue(false);
                     Authorization.setValue(false);
-
-
+                    codePin.setValue(0);
                     // Save the currentML2Status as the new previousML2Status in SharedPreferences
                     SharedPreferences.Editor editor = prefs.edit();
+                    editor.remove("currentCodePin");
+                    editor.remove("lastKnownCodePin");
                     editor.putBoolean("previousML2Status", currentML2Status);
                     editor.apply();
                 }
