@@ -30,7 +30,7 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_signup);
 
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference();
 
         EditText etFirstname = findViewById(R.id.etUsername);
         EditText etEmail = findViewById(R.id.etEmail);

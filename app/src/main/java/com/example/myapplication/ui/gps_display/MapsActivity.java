@@ -60,7 +60,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return; // If Firebase is not initialized, do not proceed
         }
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://app-proj4000-default-rtdb.firebaseio.com");
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/");
         DatabaseReference databaseReference = database.getReference("gpsData");
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override

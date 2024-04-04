@@ -47,6 +47,7 @@ public class HomeFragment extends Fragment {
     private DatabaseReference timeCurrentRef;
     private DatabaseReference codePinRef;
     private DatabaseReference ForceAuthorization;
+    private DatabaseReference codePinTrial;
 
     private DatabaseReference codePin_end;
     private DatabaseReference codePin_result;
@@ -94,13 +95,13 @@ public class HomeFragment extends Fragment {
         etCodePin.setEnabled(false);
 
 
-        timeCurrentRef = FirebaseDatabase.getInstance().getReference("timeCurrent");
-        codePinRef = FirebaseDatabase.getInstance().getReference("codePin");
-        codePin_end = FirebaseDatabase.getInstance().getReference("codePin_end");
-        codePin_result = FirebaseDatabase.getInstance().getReference("codePin_result");
-        codePin_result = FirebaseDatabase.getInstance().getReference("codePin_result");
-        ForceAuthorization=FirebaseDatabase.getInstance().getReference("ForceAuthorization");
-
+        timeCurrentRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("timeCurrent");
+        codePinRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin");
+        codePin_end = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_end");
+        codePin_result = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_result");
+        codePin_result = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_result");
+        ForceAuthorization=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ForceAuthorization");
+        codePinTrial=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePinTrial");
 
 
 
@@ -111,6 +112,7 @@ public class HomeFragment extends Fragment {
                 Integer newCodePin = dataSnapshot.getValue(Integer.class);
 
                 if (newCodePin != null && isAdded()) { // Ensure the fragment is currently added to its activity
+                    codePinTrial.setValue(false);
                     newCodePinString = String.valueOf(newCodePin);
                     lastKnownCodePin = getLastKnownCodePin();
 
@@ -211,11 +213,9 @@ public class HomeFragment extends Fragment {
                 Integer newCodePin = dataSnapshot.getValue(Integer.class);
 
                 if (newCodePin != null && isAdded()) { // Ensure the fragment is currently added to its activity
+                    codePinTrial.setValue(false);
                     newCodePinString = String.valueOf(newCodePin);
                     lastKnownCodePin = getLastKnownCodePin();
-
-                    Log.d("CodePinDebug", "New Code Pin: " + newCodePinString);
-                    Log.d("CodePinDebug", "Last Known Code Pin: " + lastKnownCodePin);
 
                     if (!newCodePinString.equals(lastKnownCodePin)) {
                         // New code pin detected, update UI and logic accordingly
@@ -421,7 +421,7 @@ public class HomeFragment extends Fragment {
     private void processAfterCodeVerification() {
         if (Boolean.FALSE.equals(timeCurrentStatus)) {
             // Directly set CognitiveGameResult to true if timeCurrent is false
-            FirebaseDatabase.getInstance().getReference("CognitiveGameResult").setValue(true);
+            FirebaseDatabase.getInstance("https://eng4k-capstone-server-main.firebaseio.com/").getReference("CognitiveGameResult").setValue(true);
             tvCodePinMessage.setText("Code verified!");
             //startGameButton.setEnabled(false); // Keep startGameButton disabled
             etCodePin.setEnabled(false); // Disable EditText

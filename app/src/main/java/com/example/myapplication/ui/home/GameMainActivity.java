@@ -38,9 +38,9 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     private DatabaseReference cognitiveGameResultRef;
     private DatabaseReference cognitiveGameEndRef;
     private DatabaseReference cognitiveGameResetRef;
-
-    private DatabaseReference ForceAuthorization;
     private DatabaseReference Authorization;
+    private DatabaseReference codePinTrial;
+    private DatabaseReference ForceAuthorization;
     private int restartCounter = 0; // Counter for tracking restarts
     private final int maxRestarts = 2; // Maximum number of allowed restarts
 
@@ -50,10 +50,11 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
         setContentView(R.layout.gamemainactivity);
 
         // Initialize Firebase database references
-        cognitiveGameResultRef = FirebaseDatabase.getInstance().getReference("CognitiveGameResult");
-        cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("Cognitive_end");
-        ForceAuthorization=FirebaseDatabase.getInstance().getReference("ForceAuthorization");
-        Authorization=FirebaseDatabase.getInstance().getReference("Authorization");
+        cognitiveGameResultRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("CognitiveGameResult");
+        cognitiveGameEndRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("CognitiveGame_end");
+        ForceAuthorization=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ForceAuthorization");
+        Authorization=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("Authorization");
+        codePinTrial=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePinTrial");
 
 
 
@@ -124,6 +125,7 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
                         .setPositiveButton("OK", (dialog, which) -> {
                             cognitiveGameResultRef.setValue(false);
                             cognitiveGameEndRef.setValue(true);
+                            codePinTrial.setValue(true);
 
                             Toast.makeText(this, "Navigating back to Home Screen!", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(this, MainActivity.class);

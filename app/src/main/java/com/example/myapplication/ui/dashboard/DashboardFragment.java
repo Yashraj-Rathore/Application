@@ -85,7 +85,7 @@ public class DashboardFragment extends Fragment {
         final TextView textView = binding.textDashboard;
         dashboardViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
 
-        
+
         return root;
 
 
@@ -94,7 +94,7 @@ public class DashboardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-       LockAlert= view.findViewById(R.id.lockStatus2Text);
+        LockAlert= view.findViewById(R.id.lockStatus2Text);
         LockAlertImage=view.findViewById(R.id.lockImage2);
         Lock= view.findViewById(R.id.lockStatusText);
         LockImage=view.findViewById(R.id.lockImage);
@@ -123,7 +123,7 @@ public class DashboardFragment extends Fragment {
             navController.navigate(R.id.action_dashboardFragment_to_galleryFragment);
         });
 
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference();
 
         Button btnForceAuthenticate = view.findViewById(R.id.btnForceAuthenticate);
         alarmSwitch = view.findViewById(R.id.lockSwitch);
@@ -236,7 +236,7 @@ public class DashboardFragment extends Fragment {
 
 
 
- //Add a ValueEventListener to listen to changes in Authorization
+        //Add a ValueEventListener to listen to changes in Authorization
         databaseReference.child("Authorization").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot authorizationSnapshot) {
@@ -314,7 +314,7 @@ public class DashboardFragment extends Fragment {
             }
         });
 
-        databaseReference2 = FirebaseDatabase.getInstance().getReference();
+        databaseReference2 = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference();
 
 
         databaseReference.child("iffail").addValueEventListener(new ValueEventListener() {
@@ -353,10 +353,10 @@ public class DashboardFragment extends Fragment {
 
         btnResetAlarm = view.findViewById(R.id.btnResetAlarm);
 
-        iffailRef = FirebaseDatabase.getInstance().getReference("iffail");
-        iffailResetRef = FirebaseDatabase.getInstance().getReference("iffailReset");
-        ML_end = FirebaseDatabase.getInstance().getReference("ML_end");
-       Authorization = FirebaseDatabase.getInstance().getReference("Authorization");
+        iffailRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("iffail");
+        iffailResetRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("iffailReset");
+        ML_end = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ML_end");
+        Authorization = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("Authorization");
 
 
 
@@ -454,7 +454,7 @@ public class DashboardFragment extends Fragment {
 
     private void verifyPasswordAndUpdateAuthorization(String password) {
         mAuth = FirebaseAuth.getInstance();
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference();
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null && password != null && !password.isEmpty()) {
             AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
@@ -505,7 +505,7 @@ public class DashboardFragment extends Fragment {
 
 
     private void updateSwitchStateFromDatabase(String key, Switch switchControl) {
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference();
         databaseReference.child(key).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

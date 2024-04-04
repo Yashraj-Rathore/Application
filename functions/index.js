@@ -1,33 +1,16 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-/**
-*const {onRequest} = require("firebase-functions/v2/https");
-*const logger = require("firebase-functions/logger");
- *const {onObjectFinalized} = require("firebase-functions/v2/storage");
-*const {initializeApp} = require("firebase-admin/app");
-*const {getStorage} = require("firebase-admin/storage");
-*const path = require("path");
-*const sharp = require("sharp");
-*/
-
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 admin.initializeApp();
 const {resetMLUpdateLockOnNewFile} = require("./resetLockFunction");
 exports.resetMLUpdateLockOnNewFile = resetMLUpdateLockOnNewFile;
-exports.sendNotificationOnImageUpload = functions.storage.object().onFinalize(
-    async (object) => {
-      const targetBucket = "app-proj4000.appspot.com";
-      // Check if the file is uploaded to the "images" folder and is a JPEG
-      if (object.bucket === targetBucket && object.contentType==="image/jpeg") {
-        // Prepare the message for FCM
+
+exports.sendNotificationOnImageUpload = functions.storage
+    .bucket("eng4k-capstone-server-712")
+    .object()
+    .onFinalize(async (object) => {
+      const targetBucket = "eng4k-capstone-server-image-post";
+      if (object.bucket === targetBucket &&
+            object.contentType === "image/jpeg") {
         const timestamp = new Date().toISOString();
         const message = {
           data: {
@@ -36,11 +19,8 @@ exports.sendNotificationOnImageUpload = functions.storage.object().onFinalize(
             message: "New image has been added to the gallery: " + object.name,
             timestamp: timestamp,
           },
-          // Assuming all devices subscribe to this topic
           topic: "allDevices",
         };
-
-        // Send a message to devices subscribed to the specified topic
         try {
           const response = await admin.messaging().send(message);
           console.log("Successfully sent message:", response);
@@ -49,9 +29,11 @@ exports.sendNotificationOnImageUpload = functions.storage.object().onFinalize(
         }
       }
     });
-
-exports.sendNotificationOnNewCodePin = functions.database.ref("/codePin").
-    onWrite(async (change, context) => {
+const message1 = "New code pin has been set, input code from LCD Screen";
+exports.sendNotificationOnNewCodePin = functions.database
+    .instance("eng4k-capstone-server-main2")
+    .ref("/codePin")
+    .onWrite(async (change, context) => {
       const before = change.before.val();
       const after = change.after.val();
 
@@ -61,7 +43,7 @@ exports.sendNotificationOnNewCodePin = functions.database.ref("/codePin").
           data: {
             type: "codePin",
             title: "New Code Pin Set. Continue to Home to Verify.",
-            message: "A new code pin has been set: " + after,
+            message: message1,
             timestamp: timestamp,
           },
           topic: "allDevices",
@@ -75,8 +57,10 @@ exports.sendNotificationOnNewCodePin = functions.database.ref("/codePin").
         }
       }
     });
-exports.checkIfFail = functions.database.ref("/iffail").
-    onWrite(async (change, context) => {
+exports.checkIfFail = functions.database
+    .instance("eng4k-capstone-server-main2")
+    .ref("/iffail")
+    .onWrite(async (change, context) => {
       const after = change.after.val();
       const timestamp = new Date().toISOString();
 
@@ -115,11 +99,165 @@ exports.checkIfFail = functions.database.ref("/iffail").
       }
     });
 
+exports.clearGalleryImages = functions.database
+    .instance("eng4k-capstone-server-main2")
+    .ref("/galleryClear")
+    .onWrite(async (change, context) => {
+      const before = change.before.val();
+      const after = change.after.val();
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+      if (before !== after && after) {
+        const bucket = admin.storage()
+            .bucket("eng4k-capstone-server-712");
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+        try {
+          const [files] = await bucket.getFiles();
+
+          await Promise.all(files.map((file) => file.delete()));
+
+          console.log("All images cleared from gallery.");
+          return null;
+        } catch (error) {
+          return null;
+        }
+      }
+      return null;
+    });
+
+const nonDefaultDb = admin.initializeApp({
+  databaseURL: "https://eng4k-capstone-server-main2.firebaseio.com/",
+}, "nonDefaultDb").database();
+
+exports.resetEnrollEndToDefault = functions.database
+    .instance("eng4k-capstone-server-main2")
+    .ref("/enrollEnd")
+    .onWrite(async (change, context) => {
+      const before = change.before.val();
+      const after = change.after.val();
+
+      // Check if the value has changed to true
+      if (before !== after && after === true) {
+        try {
+          // Wait for 5 seconds before resetting the node
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Reset the `/enrollEnd` node back to false
+          await nonDefaultDb.ref("/enrollEnd").set(false);
+          console.log("`/enrollEnd` node reset to false after 2 seconds.");
+
+          return null;
+        } catch (error) {
+          console.error("Error resetting `/enrollEnd` node:", error);
+          return null;
+        }
+      }
+      return null;
+    });
+
+// enrollTrigger
+exports.resetEnrollTriggerToDefault = functions.database
+    .instance("eng4k-capstone-server-main2")
+    .ref("/enrollTrigger")
+    .onWrite(async (change, context) => {
+      const before = change.before.val();
+      const after = change.after.val();
+
+      if (before !== after && after === true) {
+        try {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          await nonDefaultDb.ref("/enrollTrigger").set(false);
+          console.log("`/enrollTrigger` node reset to false after 2 seconds.");
+          return null;
+        } catch (error) {
+          console.error("Error resetting `/enrollTrigger` node:", error);
+          return null;
+        }
+      }
+      return null;
+    });
+
+// EnrollInit
+exports.resetEnrollInitToDefault = functions.database
+    .instance("eng4k-capstone-server-main2")
+    .ref("/enrollInit")
+    .onWrite(async (change, context) => {
+      const before = change.before.val();
+      const after = change.after.val();
+      const timestamp = new Date().toISOString();
+
+      // Check if the value has changed to true
+      if (before !== after && after === true) {
+        try {
+          // Send the notification immediately when enrollEnd becomes true
+          const message = {
+            data: {
+              type: "enrollInit",
+              title: "Enrollment Notification",
+              message: "Press button on MCU to begin Enrollment.",
+              timestamp: timestamp,
+            },
+            topic: "allDevices",
+          };
+
+          await admin.messaging().send(message);
+          console.log("Successfully sent enrollment notification.");
+
+          // Wait for 2 seconds before resetting the node
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Reset the `/enrollEnd` node back to false
+          await nonDefaultDb.ref("/enrollInit").set(false);
+          console.log("`/enrollInit` node reset to false after 2 seconds.");
+
+          return null;
+        } catch (error) {
+          console.error("Error in function execution:", error);
+          return null;
+        }
+      }
+      return null;
+    });
+
+
+// EnrollInit
+exports.resetEnrollInitToDefault = functions.database
+    .instance("eng4k-capstone-server-main2")
+    .ref("/enrollInit")
+    .onWrite(async (change, context) => {
+      const before = change.before.val();
+      const after = change.after.val();
+      const timestamp = new Date().toISOString();
+
+      // Check if the value has changed to true
+      if (before !== after && after === true) {
+        try {
+          // Send the notification immediately when enrollEnd becomes true
+          const message = {
+            data: {
+              type: "enrollInit",
+              title: "Enrollment Notification",
+              message: "Press button on MCU to begin Enrollment.",
+              timestamp: timestamp,
+            },
+            topic: "allDevices",
+          };
+
+          await admin.messaging().send(message);
+          console.log("Successfully sent enrollment notification.");
+
+          // Wait for 2 seconds before resetting the node
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+
+          // Reset the `/enrollEnd` node back to false
+          await nonDefaultDb.ref("/enrollInit").set(false);
+          console.log("`/enrollInit` node reset to false after 2 seconds.");
+
+          return null;
+        } catch (error) {
+          console.error("Error in function execution:", error);
+          return null;
+        }
+      }
+      return null;
+    });
+

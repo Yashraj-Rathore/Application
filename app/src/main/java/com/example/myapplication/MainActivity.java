@@ -91,15 +91,16 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(binding.navView, navController);
 
         if (getIntent().hasExtra("navigateTo") && "dashboard".equals(getIntent().getStringExtra("navigateTo"))) {
-            navController.navigate(R.id.navigation_dashboard); // Use the ID of your dashboard destination as defined in your nav_graph.xml
+            navController.navigate(R.id.action_HomeFragment_to_DashboardFragment); // Use the ID of your dashboard destination as defined in your nav_graph.xml
         }
 
         if (getIntent().hasExtra("navigateTo") && "Home".equals(getIntent().getStringExtra("navigateTo"))) {
             navController.navigate(R.id.action_dashboardFragment_to_HomeFragment); // Use the ID of your dashboard destination as defined in your nav_graph.xml
         }
 
+        startDatabaseListenerService();
 
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference();
 
         // Set ForceAuthorization to false whenever the app starts or MCU sets it.
         databaseReference.child("ForceAuthorization").setValue(false).addOnCompleteListener(task -> {
@@ -136,13 +137,11 @@ public class MainActivity extends AppCompatActivity {
         createNotificationChannel();
 
         handleIntent(getIntent());
-
-        cognitiveGameResetRef = FirebaseDatabase.getInstance().getReference("CognitiveGameReset");
-        cognitiveGameResultRef = FirebaseDatabase.getInstance().getReference("CognitiveGameResult");
-        cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("Cognitive_end");
+        cognitiveGameResetRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("CognitiveGameReset");
+        cognitiveGameResultRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("CognitiveGameResult");
+        cognitiveGameEndRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("Cognitive_end");
 
         // Listen for the cognitiveGameReset variable change
-
 
         cognitiveGameResetRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -215,13 +214,14 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        databaseRefML_End = FirebaseDatabase.getInstance().getReference("ML_end");
-        databaseRefML2 = FirebaseDatabase.getInstance().getReference("ML_2");
-        databaseRefML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
-        Authorization=FirebaseDatabase.getInstance().getReference("Authorization");
+        databaseRefML_End = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ML_end");
+        databaseRefML2 = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ML_2");
+        databaseRefML_Update_Lock = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ML_Update_Lock");
+        Authorization=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("Authorization");
 
-        codePinResult = FirebaseDatabase.getInstance().getReference("codePin_result");
-        codePin_end = FirebaseDatabase.getInstance().getReference("codePin_end");
+        codePinResult = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_result");
+        codePin_end = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_end");
+
         databaseRefML2.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@androidx.annotation.NonNull DataSnapshot snapshot) {
@@ -240,6 +240,7 @@ public class MainActivity extends AppCompatActivity {
                     databaseRefML_Update_Lock.setValue(true); // Engage the update lock
                     codePinResult.setValue(false);
                     Authorization.setValue(false);
+
 
                     // Save the currentML2Status as the new previousML2Status in SharedPreferences
                     SharedPreferences.Editor editor = prefs.edit();
@@ -280,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
                 // Navigate to the GalleryFragment
                 navController.navigate(R.id.action_NotificationsFragment);
             }
-              else if ("dashboard".equals(navigateTo)) {
+            else if ("dashboard".equals(navigateTo)) {
                 // Navigate to the GalleryFragment
                 navController.navigate(R.id.action_HomeFragment_to_DashboardFragment);
             }
@@ -291,7 +292,6 @@ public class MainActivity extends AppCompatActivity {
 
         });
     }
-
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -306,7 +306,10 @@ public class MainActivity extends AppCompatActivity {
             notificationManager.createNotificationChannel(channel);
         }
     }
-
+    private void startDatabaseListenerService() {
+        Intent serviceIntent = new Intent(this, ttsAlarmState.class);
+        startService(serviceIntent);
+    }
 
     private void askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
