@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -16,8 +17,12 @@ import android.util.Log;
 
 
 import android.Manifest;
+import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.antitheft.R;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -27,6 +32,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -49,7 +55,10 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,6 +85,14 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference CodePin;
 
     private DatabaseReference codePin_end;
+
+    private TextView textViewProcessedResults2,textViewProcessedResults1;
+
+
+
+    private StorageReference textFileRef2;
+
+    private boolean isActivityCreated = false;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -92,6 +109,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         NavigationUI.setupWithNavController(binding.navView, navController);
+
+        textViewProcessedResults2 = findViewById(R.id.textViewProcessedResults2);
+        textViewProcessedResults1 = findViewById(R.id.textViewProcessedResults);
 
         if (getIntent().hasExtra("navigateTo") && "dashboard".equals(getIntent().getStringExtra("navigateTo"))) {
             navController.navigate(R.id.action_HomeFragment_to_DashboardFragment); // Use the ID of your dashboard destination as defined in your nav_graph.xml
@@ -114,13 +134,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        databaseReference.child("codePin").setValue(0).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Log.d("MainActivity", "ForceAuthorization set to false successfully.");
-            } else {
-                Log.e("MainActivity", "Failed to set ForceAuthorization.", task.getException());
-            }
-        });
+//        databaseReference.child("codePin").setValue(0).addOnCompleteListener(task -> {
+//            if (task.isSuccessful()) {
+//                Log.d("MainActivity", "ForceAuthorization set to false successfully.");
+//            } else {
+//                Log.e("MainActivity", "Failed to set ForceAuthorization.", task.getException());
+//            }
+//        });
 
 
 
@@ -255,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
                     databaseRefML_Update_Lock.setValue(true); // Engage the update lock
                     codePinResult.setValue(false);
                     Authorization.setValue(false);
-                    codePin.setValue(0);
+                    //codePin.setValue(0);
                     // Save the currentML2Status as the new previousML2Status in SharedPreferences
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.remove("currentCodePin");
@@ -272,9 +292,192 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+        //reset function
+
+        DatabaseReference resetAllRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("resetAll");
+
+        resetAllRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Boolean resetAll = dataSnapshot.getValue(Boolean.class);
+                if (Boolean.TRUE.equals(resetAll)) {
+                    // Perform the reset actions
+                    databaseRefML_End.setValue(false);
+                    codePin_end.setValue(false);
+                    databaseRefML_Update_Lock.setValue(true);
+                    codePinResult.setValue(false);
+                    Authorization.setValue(false);
+
+                    // Reset the resetAll node to false after 5 seconds
+                    new Handler().postDelayed(() -> resetAllRef.setValue(false), 5000);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.w("MainActivity", "Failed to read resetAll.", databaseError.toException());
+            }
+        });
+
+
+
+        //gallery
+
+//        textFileRef2 = FirebaseStorage.getInstance("gs://eng4k-capstone-server-712").getReference("face_recognition_status.txt");
+//
+//        setupListeners();
+//        isActivityCreated = true;
 
 
     }
+
+//
+//    private void setupListeners() {
+//
+//
+//        // Listen for changes to ML_Update_Lock
+//        databaseRefML_Update_Lock.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                Boolean lockStatus = snapshot.getValue(Boolean.class);
+//                if (lockStatus != null && !lockStatus) {
+//                    if (isActivityCreated) {
+//                        downloadAndProcessTextFile();
+//                        downloadAndProcessFile();
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {}
+//        });
+//    }
+//
+//    private void downloadAndProcessTextFile() {
+//        if (!isActivityCreated) {
+//            Log.d("MainActivity", "Activity not created, skipping file processing");
+//            return; // Guard clause to prevent execution if activity is not created
+//        }
+//
+//        File localFile = null;
+//        String bucketUrl = "gs://eng4k-capstone-server-712";
+//        FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
+//        StorageReference textFileRef = storage.getReference("processed_results.txt");
+//
+//        try {
+//            localFile = File.createTempFile("processedResults", "txt", getCacheDir());
+//        } catch (IOException e) {
+//            if (textViewProcessedResults1 != null) {
+//                textViewProcessedResults1.setText("Unable to create local file.");
+//            }
+//            Log.e("MainActivity", "File creation failed", e);
+//            return;
+//        }
+//
+//        File finalLocalFile = localFile;
+//        textFileRef.getFile(localFile).addOnSuccessListener(taskSnapshot -> {
+//            new Thread(() -> {
+//                StringBuilder text = new StringBuilder();
+//                try (BufferedReader br = new BufferedReader(new FileReader(finalLocalFile))) {
+//                    String line;
+//                    while ((line = br.readLine()) != null) {
+//                        text.append(line).append('\n');
+//                    }
+//                } catch (IOException e) {
+//                    Log.e("MainActivity", "Error reading file", e);
+//                }
+//
+//                String finalText = text.toString().trim();
+//                runOnUiThread(() -> {
+//                    if (isActivityCreated) {
+//                        if (textViewProcessedResults1 != null) {
+//                            textViewProcessedResults1.setText(finalText);
+//                        }
+//                    } else {
+//                        Log.d("MainActivity", "Activity not active, skipping UI update");
+//                    }
+//                });
+//            }).start();
+//        }).addOnFailureListener(exception -> {
+//            if (textViewProcessedResults1 != null) {
+//                textViewProcessedResults1.setText("Waiting for Images");
+//            }
+//            Log.e("MainActivity", "Download failed", exception);
+//        });
+//    }
+//    private void downloadAndProcessFile() {
+//        if (!isActivityCreated) {
+//            Log.d("MainActivity", "Activity not created, skipping file download");
+//            return;
+//        }
+//
+//        File localFile;
+//        try {
+//            localFile = File.createTempFile("faceRecognitionStatus", "txt", getCacheDir());
+//        } catch (IOException e) {
+//            Log.e("MainActivity", "File creation failed", e);
+//            runOnUiThread(() -> {
+//                if (textViewProcessedResults2 != null) {
+//                    textViewProcessedResults2.setText("Unable to create local file.");
+//                }
+//            });
+//            return;
+//        }
+//
+//        textFileRef2.getFile(localFile).addOnSuccessListener(taskSnapshot -> {
+//            processFileContent(localFile);
+//        }).addOnFailureListener(exception -> {
+//            Log.e("MainActivity", "File download failed", exception);
+//            runOnUiThread(() -> {
+//                if (textViewProcessedResults2 != null) {
+//                    textViewProcessedResults2.setText("Failed to load file.");
+//                }
+//            });
+//        });
+//    }
+//
+//    private void processFileContent(File file) {
+//        if (!file.exists()) {
+//            Log.e("MainActivity", "File does not exist");
+//            runOnUiThread(() -> {
+//                if (textViewProcessedResults2 != null) {
+//                    textViewProcessedResults2.setText("File not found.");
+//                }
+//            });
+//            return;
+//        }
+//
+//        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+//            String status = br.readLine();
+//            runOnUiThread(() -> {
+//                if (isActivityCreated) {
+//                    if (textViewProcessedResults2 != null) {
+//                        textViewProcessedResults2.setText("True".equals(status) ? "Verified! Wait for Code!" : "Not Verified!");
+//                    }
+//                    updateDatabaseAuthorization("True".equals(status));
+//                    databaseRefML_End.setValue(true);
+//                    databaseRefML_Update_Lock.setValue(false);
+//                } else {
+//                    Log.d("MainActivity", "Activity not active, skipping UI update");
+//                }
+//            });
+//        } catch (IOException e) {
+//            Log.e("MainActivity", "Error reading file", e);
+//            runOnUiThread(() -> {
+//                if (textViewProcessedResults2 != null) {
+//                    textViewProcessedResults2.setText("Error reading status.");
+//                }
+//            });
+//        }
+//    }
+//    private void updateDatabaseAuthorization(boolean isAuthorized) {
+//        DatabaseReference databaseRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("Authorization");
+//        databaseRef.setValue(isAuthorized);
+//    }
+
+
+
+
 
     @Override
     protected void onNewIntent(Intent intent) {

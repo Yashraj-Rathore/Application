@@ -56,7 +56,7 @@ public class SignUpActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 long userCount = dataSnapshot.exists() ? dataSnapshot.getValue(Long.class) : 0;
-                if (userCount < 5) {
+                if (userCount < 50) {
                     // User count is less than 5, proceed with registration
                     mAuth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener(task -> {

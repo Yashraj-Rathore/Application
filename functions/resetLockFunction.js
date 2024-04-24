@@ -21,7 +21,7 @@ exports.resetMLUpdateLockOnNewFile = functions.storage
 
       // Check if the object is in the target bucket and is the target file
       if (object.bucket === targetBucket &&
-      object.name === "processed_results.txt") {
+      object.contentType === "image/jpeg") {
         console.log("Target file identified:", object.name);
 
         const lockRef = secondaryApp.database().ref("/ML_Update_Lock");

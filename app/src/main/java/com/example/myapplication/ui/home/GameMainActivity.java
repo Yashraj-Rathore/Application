@@ -3,9 +3,11 @@ package com.example.myapplication.ui.home;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -39,12 +41,11 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     private DatabaseReference cognitiveGameEndRef;
     private DatabaseReference cognitiveGameResetRef;
     private DatabaseReference Authorization;
-
-
     private DatabaseReference codePinTrial;
     private DatabaseReference ForceAuthorization;
     private int restartCounter = 0; // Counter for tracking restarts
     private final int maxRestarts = 2; // Maximum number of allowed restarts
+    private GameView.Shape targetShape;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,14 +81,30 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
 
     @Override
     public void onNewRound(String shapeName, String colorName) {
-        runOnUiThread(() -> promptTextView.setText(getString(R.string.tap_shape_prompt, shapeName, colorName)));
+        // Find the shape with the given attributes
+        for (GameView.Shape shape : gameView.shapes) {
+            if (shape.shapeType.name().equals(shapeName) && shape.colorName.equals(colorName)) {
+                // Create the icon bitmap
+                Bitmap iconBitmap = GameView.drawShapeIcon(shape);
+
+                // Find the ImageView and set the Bitmap as its image
+                ImageView shapeIconView = findViewById(R.id.shapeIconView);
+                shapeIconView.setImageBitmap(iconBitmap);
+
+                break;
+            }
+        }
     }
+
+
 
     @Override
     public void onTimerTick(long secondsLeft) {
         // Update the countdown timer
         runOnUiThread(() -> timerTextView.setText(getString(R.string.time_left, secondsLeft)));
     }
+
+
 
 
 
@@ -108,7 +125,7 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
                             cognitiveGameResultRef.setValue(false);
                             cognitiveGameEndRef.setValue(true);
 
-                            Toast.makeText(this, "Wait for code from MCU!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Navigating back to Home Screen!", Toast.LENGTH_SHORT).show();
                             Intent intent = new Intent(this, MainActivity.class);
                             intent.putExtra("navigateTo", "Home"); // "dashboard" is an example key
                             startActivity(intent);
@@ -208,11 +225,11 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
         });
     }
 
-
-
-
-
+    public void setTargetShape(GameView.Shape shape) {
+        this.targetShape = shape;
+    }
 
 
 
 }
+

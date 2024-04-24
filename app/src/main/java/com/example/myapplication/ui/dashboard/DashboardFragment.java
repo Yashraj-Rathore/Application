@@ -356,7 +356,7 @@ public class DashboardFragment extends Fragment {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 Boolean iffail = dataSnapshot.getValue(Boolean.class);
                 if (Boolean.TRUE.equals(iffail)) {
-                    btnResetAlarm.setVisibility(View.VISIBLE);
+                    btnResetAlarm.setVisibility(View.GONE); //CHANGED
                 } else {
                     btnResetAlarm.setVisibility(View.GONE);
                 }

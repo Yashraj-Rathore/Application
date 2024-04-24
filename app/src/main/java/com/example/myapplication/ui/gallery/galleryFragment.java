@@ -198,7 +198,7 @@ public class galleryFragment extends Fragment {
             new Handler().postDelayed(() -> galleryClearRef.setValue(false), 2000);
         });
 
-        textViewProcessedResults2 = view.findViewById(R.id.textViewProcessedResults2);
+       textViewProcessedResults2 = view.findViewById(R.id.textViewProcessedResults2);
         textViewProcessedResults1 = getView().findViewById(R.id.textViewProcessedResults);
 
 
