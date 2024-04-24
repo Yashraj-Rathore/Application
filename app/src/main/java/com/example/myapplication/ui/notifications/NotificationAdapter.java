@@ -32,6 +32,7 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         NotificationItem notification = notifications.get(position);
         holder.title.setText(notification.getTitle());
         holder.message.setText(notification.getMessage());
+        holder.timestamp.setText(notification.getTimestamp()); // Bind timestamp to the TextView
     }
 
     @Override
@@ -42,11 +43,13 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView title;
         public TextView message;
+        public TextView timestamp;
 
         public ViewHolder(View itemView) {
             super(itemView);
             title = itemView.findViewById(R.id.textViewNotificationTitle);
             message = itemView.findViewById(R.id.textViewNotificationContent);
+            timestamp = itemView.findViewById(R.id.textViewNotificationTimestamp);
         }
     }
 }

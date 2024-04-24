@@ -30,42 +30,45 @@ public class SignUpActivity extends AppCompatActivity {
         setContentView(R.layout.activity_signup);
 
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference();
 
-        EditText etUsername = findViewById(R.id.etUsername);
+        EditText etFirstname = findViewById(R.id.etUsername);
         EditText etEmail = findViewById(R.id.etEmail);
         EditText etPassword = findViewById(R.id.etPassword);
         Button btnSignUp = findViewById(R.id.btnSignUp);
 
         btnSignUp.setOnClickListener(v -> {
-            String username = etUsername.getText().toString().trim();
+            String Firstname = etFirstname.getText().toString().trim();
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
 
-            if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            if (Firstname.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(SignUpActivity.this, "All fields are required.", Toast.LENGTH_SHORT).show();
             } else {
-                executor.submit(() -> registerUser(username, email, password));
+                executor.submit(() -> registerUser(Firstname, email, password));
             }
         });
     }
 
-    private void registerUser(String username, String email, String password) {
+    private void registerUser(String Firstname, String email, String password) {
         // First, check the user count
         mDatabase.child("userCount").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 long userCount = dataSnapshot.exists() ? dataSnapshot.getValue(Long.class) : 0;
-                if (userCount < 5) {
+                if (userCount < 50) {
                     // User count is less than 5, proceed with registration
                     mAuth.createUserWithEmailAndPassword(email, password)
                             .addOnCompleteListener(task -> {
                                 if (task.isSuccessful()) {
+
+                                    mDatabase.child("enrollInit").setValue(true);
+                                    mDatabase.child("enrollName").setValue(Firstname);
                                     // Get the current FirebaseUser
                                     FirebaseUser firebaseUser = mAuth.getCurrentUser();
                                     if (firebaseUser != null) {
                                         String userId = firebaseUser.getUid();
-                                        User newUser = new User(username, email);
+                                        User newUser = new User(Firstname, email);
 
                                         // Update the currentUser node
                                         mDatabase.child("currentUser").setValue(newUser);

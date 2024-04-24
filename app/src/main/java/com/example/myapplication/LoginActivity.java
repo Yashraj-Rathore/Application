@@ -26,6 +26,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnLogin, btnSignUp;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
+    private DatabaseReference enrollTrigger;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
@@ -33,12 +34,13 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        enrollTrigger = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("enrollTrigger");
         mAuth = FirebaseAuth.getInstance();
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         btnSignUp = findViewById(R.id.btnSignUp);
-        mDatabase = FirebaseDatabase.getInstance().getReference();
+        mDatabase = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference();
 
         btnLogin.setOnClickListener(v -> {
             // Fetch the email and password inside the click listener
@@ -52,6 +54,7 @@ public class LoginActivity extends AppCompatActivity {
         btnSignUp.setOnClickListener(v -> {
             // Start SignUpActivity when btnSignUp is clicked
             Intent signUpIntent = new Intent(LoginActivity.this, SignUpActivity.class);
+            enrollTrigger.setValue(true);
             startActivity(signUpIntent);
         });
 

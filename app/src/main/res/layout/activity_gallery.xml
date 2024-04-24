@@ -2,41 +2,63 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#000">
 
     <TextView
         android:id="@+id/textViewProcessedResults"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
+        android:layout_below="@id/btnClearGallery"
         android:text=""
-        android:padding="16dp"
-        android:textSize="20sp"/>
+        android:padding="5dp"
+        android:textColor="#FFF"
+        android:textSize="17sp"/>
 
     <TextView
         android:id="@+id/textViewProcessedResults2"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
         android:layout_below="@id/textViewProcessedResults"
+        android:layout_marginTop="0dp"
+        android:gravity="center_horizontal"
+        android:padding="5dp"
         android:text=""
-        android:padding="16dp"
-        android:textSize="20sp"/>
+        android:textColor="#FFF"
+        android:textSize="17sp" />
+
+    <Button
+        android:id="@+id/btnClearGallery"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Clear Gallery"
+        android:padding="5dp"
+        android:textSize="14sp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:layout_centerHorizontal="true"/>
 
 
     <!-- The GridView is positioned below the buttonAuthenticate by using android:layout_below -->
     <GridView
         android:id="@+id/gridView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="613dp"
         android:layout_below="@id/textViewProcessedResults2"
-        android:numColumns="2" />
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="0dp"
+        android:numColumns="2"
+        android:textColor="#FFF"
+        android:verticalSpacing="4dp"
+        android:horizontalSpacing="4dp" />
 
     <!-- TextView for gallery, ensure to position or update this view as necessary -->
     <TextView
         android:id="@+id/textGallery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textColor="#FFF"
         android:layout_below="@id/gridView" />
 
 </RelativeLayout>

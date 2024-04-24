@@ -4,11 +4,13 @@ package com.example.myapplication.ui.gallery;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,6 +22,7 @@ import com.example.antitheft.databinding.ActivityGalleryBinding;
 import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.widget.GridView;
+import android.widget.Toast;
 
 
 import com.example.myapplication.DeviceState;
@@ -62,20 +65,19 @@ public class galleryFragment extends Fragment {
     private TextView textViewProcessedResults2,textViewProcessedResults1;
     private DatabaseReference databaseRefML_End, databaseRefML2, databaseRefML_Update_Lock;
 
-    private DatabaseReference codePinRef;
-
+    private DatabaseReference codePinResult;
+    private DatabaseReference galleryClearRef;
     private DatabaseReference codePin_end;
     private StorageReference textFileRef2;
     private Boolean previousML2Status = false;
-    private DeviceState currentState;
-
-    private DeviceStateChecker stateChecker;
 
 
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+
         galleryViewModel galleryViewModel = new ViewModelProvider(this).get(galleryViewModel.class);
+
         binding = ActivityGalleryBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
@@ -88,14 +90,15 @@ public class galleryFragment extends Fragment {
         ArrayList<ImageItem> imageItems = new ArrayList<>(); // Use ImageItem instead of String
         adapter = new ImageAdapter(getActivity(), imageItems); // Initialize the adapter with ImageItem list
         gridView.setAdapter(adapter);
+        galleryClearRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("galleryClear");
 
-        databaseRefML_End = FirebaseDatabase.getInstance().getReference("ML_end");
-        databaseRefML2 = FirebaseDatabase.getInstance().getReference("ML_2");
-        databaseRefML_Update_Lock = FirebaseDatabase.getInstance().getReference("ML_Update_Lock");
-        textFileRef2 = FirebaseStorage.getInstance().getReference("face_recognition_status.txt");
+        databaseRefML_End = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ML_end");
+        databaseRefML2 = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ML_2");
+        databaseRefML_Update_Lock = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ML_Update_Lock");
+        textFileRef2 = FirebaseStorage.getInstance("gs://eng4k-capstone-server-712").getReference("face_recognition_status.txt");
 
-        codePinRef = FirebaseDatabase.getInstance().getReference("codePin");
-        codePin_end = FirebaseDatabase.getInstance().getReference("codePin_end");
+        codePinResult = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_result");
+        codePin_end = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePin_end");
 
 
         // Retrieve and display images
@@ -119,7 +122,7 @@ public class galleryFragment extends Fragment {
         }
 
 
-        String bucketUrl = "gs://app-proj4000.appspot.com";
+        String bucketUrl = "gs://eng4k-capstone-server-712";
         FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
         StorageReference storageRef = storage.getReference();
 
@@ -187,9 +190,16 @@ public class galleryFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        Button btnClearGallery = view.findViewById(R.id.btnClearGallery);
+        btnClearGallery.setOnClickListener(v -> {
+            // Set galleryClear to true when the button is clicked
+            galleryClearRef.setValue(true);
+            Toast.makeText(getActivity(), "Clearing Images", Toast.LENGTH_SHORT).show();
+            new Handler().postDelayed(() -> galleryClearRef.setValue(false), 2000);
+        });
 
-        textViewProcessedResults2 = view.findViewById(R.id.textViewProcessedResults2);
-       textViewProcessedResults1 = getView().findViewById(R.id.textViewProcessedResults);
+       textViewProcessedResults2 = view.findViewById(R.id.textViewProcessedResults2);
+        textViewProcessedResults1 = getView().findViewById(R.id.textViewProcessedResults);
 
 
     }
@@ -198,28 +208,30 @@ public class galleryFragment extends Fragment {
 
     private void setupListeners() {
         // Listen for changes in ML_2
-        databaseRefML2.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean currentML2Status = snapshot.getValue(Boolean.class);
-                if (currentML2Status != null && !currentML2Status.equals(previousML2Status)) {
-                    // The value of ML_2 has changed
-                    // Check if it has changed to its opposite boolean value
-                    // Since we already checked for null and difference, it's certain it has changed
-
-                    // Perform your actions based on the change
-                    databaseRefML_End.setValue(false); // Force ML_End to false if ML_2 changes
-                    codePin_end.setValue(false);
-                    databaseRefML_Update_Lock.setValue(true); // Engage the update lock
-
-                    // Update the previousML2Status for future comparisons
-                    previousML2Status = currentML2Status;
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
+//        databaseRefML2.addValueEventListener(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot snapshot) {
+//                Boolean currentML2Status = snapshot.getValue(Boolean.class);
+//                if (currentML2Status != null && !currentML2Status.equals(previousML2Status)) {
+//                    // The value of ML_2 has changed
+//                    // Check if it has changed to its opposite boolean value
+//                    // Since we already checked for null and difference, it's certain it has changed
+//
+//                    // Perform your actions based on the change
+//                    databaseRefML_End.setValue(false); // Force ML_End to false if ML_2 changes
+//                    codePin_end.setValue(false);
+//                    databaseRefML_Update_Lock.setValue(true); // Engage the update lock
+//                    codePinResult.setValue(false);
+//
+//
+//                    // Update the previousML2Status for future comparisons
+//                    previousML2Status = currentML2Status;
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError error) {}
+//        });
 
         // Listen for changes to ML_Update_Lock
         databaseRefML_Update_Lock.addValueEventListener(new ValueEventListener() {
@@ -244,7 +256,7 @@ public class galleryFragment extends Fragment {
             return;
         }
         File localFile = null;
-        String bucketUrl = "gs://app-proj4000.appspot.com";
+        String bucketUrl = "gs://eng4k-capstone-server-712";
         FirebaseStorage storage = FirebaseStorage.getInstance(bucketUrl);
 
 
@@ -288,7 +300,7 @@ public class galleryFragment extends Fragment {
                 })
                 .addOnFailureListener(exception -> {
                     // Handle any errors in file download
-                    textViewProcessedResults1.setText("Failed to download results.");
+                    textViewProcessedResults1.setText("Waiting for Images");
                     exception.printStackTrace();
                 });
 
@@ -307,7 +319,7 @@ public class galleryFragment extends Fragment {
             textFileRef2.getFile(localFile2).addOnSuccessListener(taskSnapshot -> {
                 processFileContent(localFile2);
             }).addOnFailureListener(exception -> {
-                textViewProcessedResults2.setText("Failed to download results.");
+                textViewProcessedResults2.setText("...");
             });
         } catch (IOException e) {
             textViewProcessedResults2.setText("Unable to create local file.");
@@ -319,7 +331,7 @@ public class galleryFragment extends Fragment {
             String status = br.readLine();
             getActivity().runOnUiThread(() -> {
                 if ("True".equals(status)) {
-                    textViewProcessedResults2.setText("Verified!");
+                    textViewProcessedResults2.setText("Verified! Wait for Code!");
                     updateDatabaseAuthorization(true);
                     // Set ML_End true directly here based on file content
                     databaseRefML_End.setValue(true);
@@ -340,7 +352,7 @@ public class galleryFragment extends Fragment {
     }
 
     private void updateDatabaseAuthorization(boolean isAuthorized) {
-        DatabaseReference databaseRef = FirebaseDatabase.getInstance().getReference("Authorization");
+        DatabaseReference databaseRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("Authorization");
         databaseRef.setValue(isAuthorized);
     }
 

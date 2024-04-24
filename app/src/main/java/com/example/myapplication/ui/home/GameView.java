@@ -2,6 +2,7 @@ package com.example.myapplication.ui.home;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -23,7 +24,7 @@ import java.util.Random;
 
 public class GameView extends View {
     private int currentLevel = 1;
-    private final List<Shape> shapes = new ArrayList<>();
+    final List<Shape> shapes = new ArrayList<>();
     private final Random random = new Random();
     private GameEventListener gameEventListener;
     private Shape targetShape;
@@ -31,6 +32,7 @@ public class GameView extends View {
     private CountDownTimer gameTimer;
     private final Handler handler = new Handler();
     private static final int UPDATE_MILLIS = 50;
+    private final float velocityIncrement = 3.0f;
 
     public enum ShapeType {
         CIRCLE, RECTANGLE, OVAL, SQUARE
@@ -126,15 +128,18 @@ public class GameView extends View {
         Collections.shuffle(shuffledTypes);
 
         int[] palette = ColorName.getPaletteForVisionType(visionType);
+        int margin = 100; // Increased margin to avoid shapes touching the edges directly
+        int minSize = 80; // Minimum size of shapes
+        int maxSize = 120; // Maximum size of shapes
 
         for (int i = 0; i < 5; i++) {
-            int x = random.nextInt(getWidth() - 150) + 50;
-            int y = random.nextInt(getHeight() - 150) + 50;
-            int size = random.nextInt(50) + 50;
+            int x = random.nextInt(getWidth() - maxSize - margin * 2) + margin;
+            int y = random.nextInt(getHeight() - maxSize - margin * 2) + margin;
+            int size = random.nextInt(maxSize - minSize) + minSize;
             int height = size;
 
             if (shuffledTypes.get(i % shuffledTypes.size()) == ShapeType.OVAL) {
-                height *= 1.5; // Ovals have 1.5 times the height
+                height = (int) (size * 1.5); // Ovals have 1.5 times the height
             }
 
             Paint paint = new Paint();
@@ -155,7 +160,19 @@ public class GameView extends View {
         moveShapes();
     }
 
+
     public void setLevel(int level) {
+        this.currentLevel = level;
+
+        if (level == 1) {
+            for (Shape shape : shapes) {
+                // Reset velocities to initial state
+                shape.vx = random.nextInt(20) - 10; // Example initial velocity
+                shape.vy = random.nextInt(20) - 10; // Example initial velocity
+            }
+            // ... reset any other necessary state
+        }
+
         if (level > 3) {
             // Player has passed all levels, trigger success event
             if (gameTimer != null) {
@@ -175,6 +192,13 @@ public class GameView extends View {
             return; // Exit the method to prevent further game progression
         }
 
+        for (Shape shape : shapes) {
+            // Increase the velocity of each shape with each level
+            shape.vx += velocityIncrement;
+            shape.vy += velocityIncrement;
+        }
+
+
         // Existing level setup logic
         switch (level) {
             case 1:
@@ -186,8 +210,11 @@ public class GameView extends View {
             case 3:
                 timeLimit = 4000;
                 break;
+
+
             // No default case needed as we've handled levels > 3 above
         }
+
         startNewRound();
     }
 
@@ -258,41 +285,79 @@ public class GameView extends View {
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
         for (Shape shape : shapes) {
+            // Draw the shape as usual
             switch (shape.shapeType) {
                 case CIRCLE:
-                    // Use width for the radius. Since it's a circle, width = height.
                     canvas.drawCircle(shape.x + shape.width / 2f, shape.y + shape.height / 2f, shape.width / 2f, shape.paint);
                     break;
                 case RECTANGLE:
                 case SQUARE:
-                    // Use width and height to draw rectangles and squares
                     canvas.drawRect(shape.x, shape.y, shape.x + shape.width, shape.y + shape.height, shape.paint);
                     break;
                 case OVAL:
-                    // Update the oval's bounding RectF before drawing
                     shape.updateOvalRect();
                     canvas.drawOval(shape.ovalRect, shape.paint);
                     break;
             }
+
+            // Draw an outline if the shape is selected
+            if (shape.isSelected) {
+                Paint outlinePaint = new Paint();
+                outlinePaint.setColor(Color.BLACK); // Outline color
+                outlinePaint.setStyle(Paint.Style.STROKE); // Make it a stroke
+                outlinePaint.setStrokeWidth(5); // Set the stroke width
+
+                switch (shape.shapeType) {
+                    case CIRCLE:
+                        canvas.drawCircle(shape.x + shape.width / 2f, shape.y + shape.height / 2f, shape.width / 2f + 2.5f, outlinePaint);
+                        break;
+                    case RECTANGLE:
+                    case SQUARE:
+                        canvas.drawRect(shape.x - 2.5f, shape.y - 2.5f, shape.x + shape.width + 2.5f, shape.y + shape.height + 2.5f, outlinePaint);
+                        break;
+                    case OVAL:
+                        canvas.drawOval(shape.ovalRect, outlinePaint);
+                        break;
+                }
+            }
         }
+
+        if (targetShape != null) {
+            drawShapeIcon( targetShape);
+        }
+
     }
+
+
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             float touchX = event.getX();
             float touchY = event.getY();
-            Log.d("GAME_TOUCH", "Touch at: [" + touchX + ", " + touchY + "]");
 
-            // Add touch event handling for different shapes
-            if (targetShape.contains(touchX, touchY)) {
-                nextLevel(); // Start a new round if the target shape is tapped
-                performClick();
-                return true;
+            for (Shape shape : shapes) {
+                if (shape.contains(touchX, touchY)) {
+                    targetShape = shape; // Set the touched shape as the target
+                    shape.isSelected = true; // Mark the shape as selected
+                    invalidate(); // Request to redraw the view
+
+                    // Set a delay to unselect the shape
+                    handler.postDelayed(() -> {
+                        shape.isSelected = false;
+                        invalidate(); // Request to redraw the view to remove the outline
+                    }, 500); // Delay of 1000 milliseconds (1 second)
+
+                    nextLevel();
+                    performClick();
+                    return true;
+                }
             }
         }
         return super.onTouchEvent(event);
     }
+
+
 
     @Override
     public boolean performClick() {
@@ -307,6 +372,7 @@ public class GameView extends View {
         ShapeType shapeType;
         String colorName;
         float vx, vy;
+        boolean isSelected = false;
         RectF ovalRect = new RectF(); // Initialize RectF for ovals
 
         Shape(float x, float y, int width, int height, Paint paint, ShapeType shapeType, String colorName) {
@@ -356,8 +422,32 @@ public class GameView extends View {
             }
         }
 
-
     }
+
+    public static Bitmap drawShapeIcon(Shape shape) {
+        int iconSize = 20; // Fixed size for icon
+        Bitmap bitmap = Bitmap.createBitmap(iconSize, iconSize, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        Paint paint = new Paint(shape.paint);
+
+        // No need to calculate iconX and iconY since we're drawing directly on the Bitmap's canvas.
+        switch (shape.shapeType) {
+            case CIRCLE:
+                canvas.drawCircle(iconSize / 2f, iconSize / 2f, iconSize / 2f, paint);
+                break;
+            case RECTANGLE:
+            case SQUARE:
+                canvas.drawRect(0, 0, iconSize, iconSize, paint);
+                break;
+            case OVAL:
+                RectF ovalRect = new RectF(0, 0, iconSize, iconSize / 2f);
+                canvas.drawOval(ovalRect, paint);
+                break;
+        }
+
+        return bitmap;
+    }
+
 
     public interface GameEventListener {
         void onNewRound(String shapeType, String colorName);

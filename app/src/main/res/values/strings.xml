@@ -3,7 +3,7 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
-    <string name="title_gallery">gallery</string>
+    <string name="title_gallery">Gallery</string>
     <string name="lock_status">Lock Status</string>
     <string name="camera">Camera</string>
     <string name="location">Location</string>
@@ -23,11 +23,13 @@
     <string name="exit">Exit</string>
     <string name="restart">Restart</string>
     <string name="game_success_title">Success!</string>
-    <string name="game_success_message">You\'ve completed all levels.Press OK and go to dashboard to control Servo</string>
+    <string name="game_success_message">You\'ve completed all levels.Press OK.</string>
     <string name="timer_clear">--:--</string> <!-- For clearing the timer display -->
     <string name="logo_desc">York University Logo</string>
     <string name="logo_desc2">Lassonde Logo</string>
     <string name="title_activity_login">Login</string>
     <string name="title_activity_signup">SignUp</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <string name="my_maps_api_key">AIzaSyBRjQ5tWPuLimZZtaksMfZbm4qJQ2mwF8U</string>
 
 </resources>

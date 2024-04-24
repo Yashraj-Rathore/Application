@@ -17,17 +17,14 @@ import com.example.myapplication.MainActivity;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.text.DateFormat;
+import java.util.Date;
+
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-//        // Check if the message contains a notification payload.
-//        if (remoteMessage.getNotification() != null) {
-//            sendNotification(remoteMessage.getNotification().getTitle(),
-//                    remoteMessage.getNotification().getBody());
-//        }
 
-        // Prioritize data payload.
         // Prioritize data payload.
 
         if (remoteMessage.getData().size() > 0) {
@@ -41,16 +38,23 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 String title = remoteMessage.getData().get("title");
                 String messageBody = remoteMessage.getData().get("message");
                 sendNotificationCodePin(title, messageBody);
+            } else if ("iffail".equals(type)) {
+                String title = remoteMessage.getData().get("title");
+                String messageBody = remoteMessage.getData().get("message");
+                sendNotificationiffail(title, messageBody);
+
+            } else if ("enrollInit".equals(type)) {
+                String title = remoteMessage.getData().get("title");
+                String messageBody = remoteMessage.getData().get("message");
+                sendNotificationenrollInit(title, messageBody);
+            }
+            // Check if message contains a notification payload and handle it as a fallback.
+            if (remoteMessage.getNotification() != null) {
+                sendNotificationImage(remoteMessage.getNotification().getTitle(),
+                        remoteMessage.getNotification().getBody());
             }
         }
-
-        // Check if message contains a notification payload and handle it as a fallback.
-        if (remoteMessage.getNotification() != null) {
-            sendNotificationImage(remoteMessage.getNotification().getTitle(),
-                    remoteMessage.getNotification().getBody());
-        }
     }
-
 
     private void sendNotificationImage(String title, String messageBody) {
 
@@ -60,9 +64,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String notifKey = "notif_" + System.currentTimeMillis();
         editor.putString(notifKey + "_title", title);
         editor.putString(notifKey + "_message", messageBody);
+        editor.putString(notifKey + "_timestamp", DateFormat.getDateTimeInstance().format(new Date()));
         editor.apply();
-
-
 
         // Create an explicit intent for your MainActivity
         Intent intent = new Intent(this, MainActivity.class);
@@ -98,7 +101,50 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         notificationManager.notify(0, notificationBuilder.build());
     }
+    private void sendNotificationenrollInit(String title, String messageBody) {
 
+        SharedPreferences prefs = getSharedPreferences("notifications", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        // Create a unique key for each notification based on current time
+        String notifKey = "notif_" + System.currentTimeMillis();
+        editor.putString(notifKey + "_title", title);
+        editor.putString(notifKey + "_message", messageBody);
+        editor.putString(notifKey + "_timestamp", DateFormat.getDateTimeInstance().format(new Date()));
+        editor.apply();
+
+        // Create an explicit intent for your MainActivity
+        Intent intent = new Intent(this, MainActivity.class);
+
+        intent.putExtra("navigateTo", "notifications");
+
+        // Ensure the back stack is managed correctly
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+
+        String channelId = MainActivity.CHANNEL_ID;
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder =
+                new NotificationCompat.Builder(this, channelId)
+                        .setSmallIcon(R.drawable.ic_bell)
+                        .setContentTitle(title)
+                        .setContentText(messageBody)
+                        .setAutoCancel(true)
+                        .setSound(defaultSoundUri)
+                        .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        notificationManager.notify(0, notificationBuilder.build());
+    }
     private void sendNotificationCodePin(String title, String messageBody) {
         SharedPreferences prefs = getSharedPreferences("notifications", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -106,11 +152,15 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         String notifKey = "codePin_" + System.currentTimeMillis();
         editor.putString(notifKey + "_title", title);
         editor.putString(notifKey + "_message", messageBody);
+        // Save a timestamp along with the notification
+        editor.putString(notifKey + "_timestamp", DateFormat.getDateTimeInstance().format(new Date()));
         editor.apply();
 
         // Create an explicit intent for your MainActivity
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("navigateTo", "home"); // Directs to the HomeFragment where they can enter the pin
+        intent.putExtra("navigateTo", "notifications");
+
+        // Directs to the HomeFragment where they can enter the pin
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
 
@@ -118,7 +168,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(R.drawable.ic_notifications_black_24dp)
                 .setContentTitle("New Pin Code")
-                .setContentText("A new pin code has been set. Tap to enter it.")
+                .setContentText("A new pin code has been set.")
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent);
 
@@ -135,5 +185,53 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     }
 
 
+    private void sendNotificationiffail(String title, String messageBody) {
+
+        SharedPreferences prefs = getSharedPreferences("notifications", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        // Create a unique key for each notification based on current time
+        String notifKey = "notif_" + System.currentTimeMillis();
+        editor.putString(notifKey + "_title", title);
+        editor.putString(notifKey + "_message", messageBody);
+        editor.putString(notifKey + "_timestamp", DateFormat.getDateTimeInstance().format(new Date()));
+        editor.apply();
+
+
+        // Create an explicit intent for your MainActivity
+        Intent intent = new Intent(this, MainActivity.class);
+
+        // Include some extra data to indicate where to navigate
+        intent.putExtra("navigateTo", "dashboard");
+
+        // Ensure the back stack is managed correctly
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+
+        String channelId = MainActivity.CHANNEL_ID;
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        NotificationCompat.Builder notificationBuilder =
+                new NotificationCompat.Builder(this, channelId)
+                        .setSmallIcon(R.drawable.ic_bell)
+                        .setContentTitle(title)
+                        .setContentText(messageBody)
+                        .setAutoCancel(true)
+                        .setSound(defaultSoundUri)
+                        .setContentIntent(pendingIntent);
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(channelId,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        notificationManager.notify(0, notificationBuilder.build());
     }
+
+
+}
 

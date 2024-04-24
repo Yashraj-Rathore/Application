@@ -3,9 +3,11 @@ package com.example.myapplication.ui.home;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,6 +40,12 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     private DatabaseReference cognitiveGameResultRef;
     private DatabaseReference cognitiveGameEndRef;
     private DatabaseReference cognitiveGameResetRef;
+    private DatabaseReference Authorization;
+    private DatabaseReference codePinTrial;
+    private DatabaseReference ForceAuthorization;
+    private int restartCounter = 0; // Counter for tracking restarts
+    private final int maxRestarts = 2; // Maximum number of allowed restarts
+    private GameView.Shape targetShape;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,28 +53,13 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
         setContentView(R.layout.gamemainactivity);
 
         // Initialize Firebase database references
-        cognitiveGameResultRef = FirebaseDatabase.getInstance().getReference("CognitiveGameResult");
-        cognitiveGameEndRef = FirebaseDatabase.getInstance().getReference("Cognitive_end");
-        cognitiveGameResetRef = FirebaseDatabase.getInstance().getReference("CognitiveGameReset");
+        cognitiveGameResultRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("CognitiveGameResult");
+        cognitiveGameEndRef = FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("CognitiveGame_end");
+        ForceAuthorization=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("ForceAuthorization");
+        Authorization=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("Authorization");
+        codePinTrial=FirebaseDatabase.getInstance("https://eng4k-capstone-server-main2.firebaseio.com/").getReference("codePinTrial");
 
-        // Listen for the cognitiveGameReset variable change
-        cognitiveGameResetRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Boolean reset = dataSnapshot.getValue(Boolean.class);
-                if (Boolean.TRUE.equals(reset)) {
-                    // Reset the cognitiveGameResult and cognitiveGameEnd to false
-                    cognitiveGameResultRef.setValue(false);
-                    cognitiveGameEndRef.setValue(false);
-                    cognitiveGameResetRef.setValue(false); // Optionally reset the cognitiveGameReset too
-                }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w("GameMainActivity", "Failed to read cognitiveGameReset.", databaseError.toException());
-            }
-        });
 
         // Initialize the TextViews
         timerTextView = findViewById(R.id.timerTextView);
@@ -88,8 +81,22 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
 
     @Override
     public void onNewRound(String shapeName, String colorName) {
-        runOnUiThread(() -> promptTextView.setText(getString(R.string.tap_shape_prompt, shapeName, colorName)));
+        // Find the shape with the given attributes
+        for (GameView.Shape shape : gameView.shapes) {
+            if (shape.shapeType.name().equals(shapeName) && shape.colorName.equals(colorName)) {
+                // Create the icon bitmap
+                Bitmap iconBitmap = GameView.drawShapeIcon(shape);
+
+                // Find the ImageView and set the Bitmap as its image
+                ImageView shapeIconView = findViewById(R.id.shapeIconView);
+                shapeIconView.setImageBitmap(iconBitmap);
+
+                break;
+            }
+        }
     }
+
+
 
     @Override
     public void onTimerTick(long secondsLeft) {
@@ -104,30 +111,51 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
     @Override
     public void onGameOver() {
         runOnUiThread(() -> {
-            // Show a game over message or dialog
-            new AlertDialog.Builder(GameMainActivity.this)
-                    .setTitle(R.string.game_over)
-                    .setMessage(getString(R.string.game_over_message) + " You've reached level " + currentLevel + ". Try again!")
-                    .setPositiveButton(R.string.restart, (dialog, which) -> restartGame()) // Restart the game
-                    .setNegativeButton(R.string.exit, (dialog, which) -> {
-                        cognitiveGameEndRef.setValue(true);
+            // If the restartCounter is less than maxRestarts, allow the game to restart
+            if (restartCounter < maxRestarts) {
+                new AlertDialog.Builder(GameMainActivity.this)
+                        .setTitle(R.string.game_over)
+                        .setMessage(getString(R.string.game_over_message) + " You've reached level " + currentLevel + ". Try again!")
+                        .setPositiveButton(R.string.restart, (dialog, which) -> {
+                            restartCounter++; // Increment the restart counter
+                            restartGame(); // Restart the game
+                        })
+                        .setNegativeButton(R.string.exit, (dialog, which) -> {
 
-//                        Intent intent = new Intent(this, com.example.myapplication.MainActivity.class); // Assuming MainActivity hosts HomeFragment
-//                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-//                        startActivity(intent);
-//
-                        //startActivity(new Intent(GameMainActivity.this, MainActivity.class));
-                        //finish();
+                            cognitiveGameResultRef.setValue(false);
+                            cognitiveGameEndRef.setValue(true);
 
-                        Intent intent = new Intent(this, MainActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                        startActivity(intent);
-                        finish();
+                            Toast.makeText(this, "Navigating back to Home Screen!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(this, MainActivity.class);
+                            intent.putExtra("navigateTo", "Home"); // "dashboard" is an example key
+                            startActivity(intent);
+                            finish();
 
+                        }) // Exit the game
+                        .show();
+            } else {
+                // If maxRestarts has been reached, exit the game automatically
 
-                    }) // Exit the game
-                    .show();
+                new AlertDialog.Builder(GameMainActivity.this)
+                        .setTitle(R.string.game_over)
+                        .setMessage("Maximum restarts reached. Exiting game.")
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            cognitiveGameResultRef.setValue(false);
+                            cognitiveGameEndRef.setValue(true);
+                            codePinTrial.setValue(true);
+
+                            Toast.makeText(this, "Navigating back to Home Screen!", Toast.LENGTH_SHORT).show();
+                            Intent intent = new Intent(this, MainActivity.class);
+                            intent.putExtra("navigateTo", "Home"); // "dashboard" is an example key
+                            startActivity(intent);
+                            finish();
+
+                        })
+                        .show();
+
+            }
         });
+
     }
 
     @Override
@@ -143,15 +171,26 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
                     .setPositiveButton("OK", (dialog, which) -> {
                         cognitiveGameResultRef.setValue(true);
                         cognitiveGameEndRef.setValue(true);
+                        ForceAuthorization.setValue(false);
+                        Authorization.setValue(true);
 
                         //startActivity(new Intent(GameMainActivity.this, MainActivity.class));
                         //finish();
 
 
+//                        Intent intent = new Intent(this, MainActivity.class);
+//                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                        startActivity(intent);
+//                        finish();
+
+
+                        Toast.makeText(this, "Navigating to Dashboard for servo Control.", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(this, MainActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                        intent.putExtra("navigateTo", "dashboard"); // "dashboard" is an example key
                         startActivity(intent);
                         finish();
+
+
 
                     })
                     .show();
@@ -170,7 +209,11 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
         cognitiveGameEndRef.setValue(false);
 
         currentLevel = 1; // Reset to level 1
+        levelTextView.setText(getString(R.string.level_default, currentLevel));
+
+
         startLevel(currentLevel); // Start the first level again
+
     }
 
     @Override
@@ -182,11 +225,11 @@ public class GameMainActivity extends AppCompatActivity implements GameView.Game
         });
     }
 
-
-
-
-
+    public void setTargetShape(GameView.Shape shape) {
+        this.targetShape = shape;
+    }
 
 
 
 }
+

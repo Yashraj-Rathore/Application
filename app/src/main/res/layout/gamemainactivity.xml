@@ -28,6 +28,14 @@
         android:textSize="18sp" />
 
     <!-- Level TextView just below the prompt to display the current level -->
+    <ImageView
+        android:id="@+id/shapeIconView"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_below="@id/timerTextView"
+        android:layout_marginStart="300dp"
+        android:layout_marginTop="21dp" />
+
     <TextView
         android:id="@+id/levelTextView"
         android:layout_width="wrap_content"
